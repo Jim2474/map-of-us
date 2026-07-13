@@ -759,8 +759,6 @@ export default function ProvinceMap({ province, width = 1120, height = 760 }: Pr
         startCamera: cameraRef.current,
       };
     }
-    event.currentTarget.setPointerCapture(event.pointerId);
-    setDragging(true);
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -798,6 +796,7 @@ export default function ProvinceMap({ province, width = 1120, height = 760 }: Pr
 
       dragMovedRef.current = true;
       suppressClickRef.current = true;
+      setDragging(true);
       setCamera({
         scale: nextScale,
         x: midpointX - mapX * nextScale,
@@ -813,18 +812,31 @@ export default function ProvinceMap({ province, width = 1120, height = 760 }: Pr
     const dy = (event.clientY - dragState.startClientY) / frameScale;
 
     if (Math.abs(dx) + Math.abs(dy) > 6) {
+      if (!dragMovedRef.current) {
+        try {
+          event.currentTarget.setPointerCapture(event.pointerId);
+        } catch {}
+      }
       dragMovedRef.current = true;
       suppressClickRef.current = true;
+      setDragging(true);
     }
 
-    setCamera({
-      ...dragState.startCamera,
-      x: dragState.startCamera.x + dx,
-      y: dragState.startCamera.y + dy,
-    });
+    if (dragMovedRef.current) {
+      setCamera({
+        ...dragState.startCamera,
+        x: dragState.startCamera.x + dx,
+        y: dragState.startCamera.y + dy,
+      });
+    }
   };
 
   const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    try {
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+    } catch {}
     activePointersRef.current.delete(event.pointerId);
     if (dragStateRef.current?.pointerId === event.pointerId) {
       dragStateRef.current = null;

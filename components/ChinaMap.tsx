@@ -190,7 +190,6 @@ export default function ChinaMap({ width = 1100, height = 860, className }: Chin
       startClientY: event.clientY,
       startPan: pan,
     };
-    event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -200,20 +199,32 @@ export default function ChinaMap({ width = 1100, height = 860, className }: Chin
     const dx = event.clientX - dragState.startClientX;
     const dy = event.clientY - dragState.startClientY;
     if (Math.abs(dx) + Math.abs(dy) > 6) {
+      if (!dragMovedRef.current) {
+        try {
+          event.currentTarget.setPointerCapture(event.pointerId);
+        } catch {}
+      }
       dragMovedRef.current = true;
       suppressClickRef.current = true;
     }
 
-    const maxPanX = width * (zoom - 1) * 0.24;
-    const maxPanY = height * (zoom - 1) * 0.24;
-    setPan({
-      x: Math.min(Math.max(dragState.startPan.x + dx, -maxPanX), maxPanX),
-      y: Math.min(Math.max(dragState.startPan.y + dy, -maxPanY), maxPanY),
-    });
+    if (dragMovedRef.current) {
+      const maxPanX = width * (zoom - 1) * 0.24;
+      const maxPanY = height * (zoom - 1) * 0.24;
+      setPan({
+        x: Math.min(Math.max(dragState.startPan.x + dx, -maxPanX), maxPanX),
+        y: Math.min(Math.max(dragState.startPan.y + dy, -maxPanY), maxPanY),
+      });
+    }
   };
 
   const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
     if (dragStateRef.current?.pointerId === event.pointerId) {
+      try {
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+          event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+      } catch {}
       dragStateRef.current = null;
     }
   };
