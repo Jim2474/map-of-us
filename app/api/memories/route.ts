@@ -82,6 +82,7 @@ function normalizeStoredMemory(cityId: string, value: unknown): Memory[] {
     const image = storedImage || photos[0] || city.sprite;
     const id = typeof entry.id === "string" ? entry.id : `${city.id}-local-${index}`;
     const createdAt = typeof entry.createdAt === "string" ? entry.createdAt : new Date(0).toISOString();
+    const spotId = typeof entry.spotId === "string" ? entry.spotId : undefined;
 
     return [
       {
@@ -94,6 +95,7 @@ function normalizeStoredMemory(cityId: string, value: unknown): Memory[] {
         photos: photos.length > 0 ? photos : [image],
         text,
         createdAt,
+        ...(spotId ? { spotId } : {}),
       },
     ];
   });
@@ -195,6 +197,7 @@ function parseMemoryPayload(payload: unknown): Memory | null {
   }
 
   const coverImage = photos[0] ?? image ?? city.sprite;
+  const spotId = typeof payload.memory.spotId === "string" ? payload.memory.spotId : undefined;
 
   return {
     id: `${city.id}-${Date.now()}`,
@@ -206,6 +209,7 @@ function parseMemoryPayload(payload: unknown): Memory | null {
     photos: photos.length > 0 ? photos : [coverImage],
     text: trimmedText,
     createdAt: new Date().toISOString(),
+    ...(spotId ? { spotId } : {}),
   };
 }
 

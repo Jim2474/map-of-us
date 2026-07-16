@@ -9,6 +9,7 @@ export interface Memory {
   text: string;
   createdAt?: string;
   draft?: boolean;
+  spotId?: string; // 可选：关联到城市内具体地点的 ID
 }
 
 export const memories: Memory[] = [];

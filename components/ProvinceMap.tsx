@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ImagePlus,
@@ -13,6 +14,7 @@ import {
   RotateCcw,
   Trash2,
   X,
+  MapPin,
 } from "lucide-react";
 import { chinaFeatures, makePath, makeProjectionForProvince, provinceIdOf } from "@/lib/geo";
 import { cityFallbackSprite, getCitiesByProvince, type City } from "@/data/cities";
@@ -21,6 +23,7 @@ import { getLitCityIds, memoryStoreUpdatedEvent, type LocalMemoryStore } from "@
 import { adminModeUpdatedEvent, readAdminMode } from "@/data/adminMode";
 import type { Province } from "@/data/provinces";
 import { LocalPrivacyImage, LocalPrivacyImg } from "@/components/LocalPrivacyImage";
+import { hasCityDetail } from "@/data/spots";
 
 interface ProvinceMapProps {
   province: Province;
@@ -1791,6 +1794,10 @@ function MemoryCard({
         </button>
       )}
 
+      {hasCityDetail(city.id) && (
+        <CityExploreButton cityId={city.id} cityName={city.name} />
+      )}
+
       <AnimatePresence initial={false}>
         {formOpen && (
           <motion.div
@@ -1973,5 +1980,25 @@ function LandmarkSprite({ city, lit }: Readonly<{ city: City; lit: boolean }>) {
       sizes="112px"
       unoptimized
     />
+  );
+}
+
+// 「进城探索」跳转按钮（只对有城市详情页的城市显示）
+function CityExploreButton({ cityId, cityName }: { cityId: string; cityName: string }) {
+  const router = useRouter();
+
+  return (
+    <motion.button
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={() => router.push(`/city/${cityId}`)}
+      className="mt-3 flex w-full items-center justify-center gap-2 rounded-[10px] border border-[#E8B8C2] bg-gradient-to-r from-[#F5DCE0] to-[#F0D0DC] px-4 py-2.5 text-sm font-semibold text-[#C97B8A] shadow-[0_2px_12px_rgba(232,184,194,0.25)] transition hover:shadow-[0_4px_16px_rgba(232,184,194,0.4)] hover:from-[#EEC8D0] hover:to-[#E8B8C2] hover:text-[#9A3D52]"
+      type="button"
+      aria-label={`进入${cityName}精细地图`}
+    >
+      <MapPin className="h-4 w-4" />
+      🗺️ 进城探索 · {cityName}专属地图
+      <span className="ml-auto text-xs font-normal opacity-60">→</span>
+    </motion.button>
   );
 }
