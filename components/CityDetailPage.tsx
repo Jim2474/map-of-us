@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, MapPin, Plus, X, Check, Pencil, Trash2 } from "lucide-react";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
+import { ArrowLeft, MapPin, Plus, X, Check, Pencil, Trash2, LayoutGrid } from "lucide-react";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { City } from "@/data/cities";
@@ -12,6 +12,7 @@ import type { Spot } from "@/data/spots";
 import type { Memory } from "@/data/memories";
 import { adminModeUpdatedEvent, readAdminMode } from "@/data/adminMode";
 import SpotMemoryPanel from "@/components/SpotMemoryPanel";
+import SpotCardGallery from "@/components/SpotCardGallery";
 
 // Fix Leaflet default icon issue in Next.js
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -278,6 +279,7 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
   const [showNewSpotForm, setShowNewSpotForm] = useState(false);
   const [newSpotCoords, setNewSpotCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showGallery, setShowGallery] = useState(false);
 
   const selectedSpot = spots.find((s) => s.id === selectedSpotId) ?? null;
   const selectedSpotMemories = selectedSpotId ? (memories[selectedSpotId] ?? []) : [];
@@ -447,6 +449,42 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
             管理员 · 右键添加地点
           </div>
         )}
+
+        {/* 地标总览切换按钮 */}
+        {spots.length > 0 && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              setShowGallery((v) => !v);
+              if (showGallery) setSelectedSpotId(null);
+            }}
+            style={{
+              pointerEvents: "all",
+              background: showGallery
+                ? `linear-gradient(135deg, ${colors.bloom}, ${colors.rose})`
+                : colors.cream,
+              border: `1.5px solid ${showGallery ? colors.rose : colors.dim}`,
+              borderRadius: 12,
+              padding: "7px 13px",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              cursor: "pointer",
+              color: showGallery ? "#fff" : colors.ink,
+              fontSize: "0.78rem",
+              fontWeight: 600,
+              boxShadow: showGallery
+                ? "0 4px 16px rgba(201,123,138,0.4)"
+                : "0 2px 8px rgba(0,0,0,0.08)",
+              marginLeft: "auto",
+            }}
+            aria-label="切换地标总览"
+          >
+            <LayoutGrid size={14} />
+            地标总览
+          </motion.button>
+        )}
       </div>
 
       {/* Leaflet Map */}
@@ -538,11 +576,12 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
           )}
         </AnimatePresence>
 
-        {/* Spots legend / sidebar */}
-        {!selectedSpot && !showNewSpotForm && (
+        {/* Spots mini sidebar (only when gallery is hidden) */}
+        {!selectedSpot && !showNewSpotForm && !showGallery && spots.length > 0 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
             style={{
               position: "absolute",
               right: 16,
@@ -569,54 +608,67 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
             >
               🗺️ 我们的地标
             </div>
-            {spots.length === 0 ? (
-              <div style={{ padding: "16px 14px", fontSize: "0.78rem", color: colors.dim }}>
-                {isAdmin ? "右键地图添加第一个地点" : "暂无地标"}
-              </div>
-            ) : (
-              spots.map((spot) => {
-                const count = (memories[spot.id] ?? []).length;
-                return (
-                  <button
-                    key={spot.id}
-                    onClick={() => { setSelectedSpotId(spot.id); setShowNewSpotForm(false); }}
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "9px 14px",
-                      border: "none",
-                      borderBottom: `1px solid ${colors.dim}44`,
-                      background: selectedSpotId === spot.id ? colors.sakura : "transparent",
-                      cursor: "pointer",
-                      textAlign: "left",
-                    }}
-                  >
-                    <span style={{ fontSize: 18, flexShrink: 0 }}>{spot.emoji ?? "❤️"}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: "0.78rem",
-                          fontWeight: 600,
-                          color: colors.ink,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {spot.name}
-                      </div>
-                      <div style={{ fontSize: "0.68rem", color: colors.dim }}>
-                        {count > 0 ? `${count} 段回忆` : "暂无回忆"}
-                      </div>
+            {spots.map((spot) => {
+              const count = (memories[spot.id] ?? []).length;
+              return (
+                <button
+                  key={spot.id}
+                  onClick={() => { setSelectedSpotId(spot.id); setShowNewSpotForm(false); }}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "9px 14px",
+                    border: "none",
+                    borderBottom: `1px solid ${colors.dim}44`,
+                    background: selectedSpotId === spot.id ? colors.sakura : "transparent",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <span style={{ fontSize: 18, flexShrink: 0 }}>{spot.emoji ?? "❤️"}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: "0.78rem",
+                        fontWeight: 600,
+                        color: colors.ink,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {spot.name}
                     </div>
-                  </button>
-                );
-              })
-            )}
+                    <div style={{ fontSize: "0.68rem", color: colors.dim }}>
+                      {count > 0 ? `${count} 段回忆` : "暂无回忆"}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </motion.div>
         )}
+
+        {/* 底部地标卡片总览 */}
+        <AnimatePresence>
+          {showGallery && spots.length > 0 && (
+            <SpotCardGallery
+              spots={spots}
+              memories={memories}
+              selectedSpotId={selectedSpotId}
+              onSelectSpot={(id) => {
+                setSelectedSpotId(id);
+                setShowNewSpotForm(false);
+              }}
+              onClose={() => {
+                setShowGallery(false);
+                setSelectedSpotId(null);
+              }}
+            />
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Custom Leaflet CSS overrides */}
