@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
-import { X, Heart, MapPin, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
+import { X, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Spot } from "@/data/spots";
 import type { Memory } from "@/data/memories";
 
@@ -15,46 +15,32 @@ interface SpotCardGalleryProps {
 }
 
 const colors = {
-  cream: "#FAFBF7",
-  ink: "#5A6670",
-  sakura: "#F5DCE0",
   bloom: "#E8B8C2",
   rose: "#C97B8A",
-  deepRose: "#9A3D52",
-  dim: "#D8DDD8",
 };
 
-// 单个地点的所有照片（含每条回忆的每张图）
 function getSpotPhotos(memoryList: Memory[]): string[] {
   const photos: string[] = [];
   for (const mem of memoryList) {
-    if (mem.photos && mem.photos.length > 0) {
-      photos.push(...mem.photos);
-    } else if (mem.image) {
-      photos.push(mem.image);
-    }
+    if (mem.photos && mem.photos.length > 0) photos.push(...mem.photos);
+    else if (mem.image) photos.push(mem.image);
   }
-  return [...new Set(photos)]; // 去重
+  return [...new Set(photos)];
 }
 
-// 底部小圆点指示器
 function Dots({ total, active }: { total: number; active: number }) {
   if (total <= 1) return null;
+  const show = Math.min(total, 7);
   return (
-    <div style={{ display: "flex", gap: 6, alignItems: "center", justifyContent: "center" }}>
-      {Array.from({ length: Math.min(total, 8) }).map((_, i) => {
-        const isActive = i === Math.min(active, 7);
-        const isLast = total > 8 && i === 7;
+    <div style={{ display: "flex", gap: 5, alignItems: "center", justifyContent: "center" }}>
+      {Array.from({ length: show }).map((_, i) => {
+        const isActive = i === Math.min(active, show - 1);
         return (
           <motion.div
             key={i}
-            animate={{ width: isActive ? 20 : 6, opacity: isLast ? 0.4 : isActive ? 1 : 0.38 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            style={{
-              height: 6,
-              borderRadius: 3,
-              background: isActive ? colors.bloom : "rgba(255,255,255,0.55)",
-            }}
+            animate={{ width: isActive ? 18 : 5, opacity: isActive ? 1 : 0.35 }}
+            transition={{ type: "spring", stiffness: 500, damping: 35 }}
+            style={{ height: 5, borderRadius: 3, background: isActive ? colors.bloom : "rgba(255,255,255,0.5)" }}
           />
         );
       })}
@@ -62,285 +48,128 @@ function Dots({ total, active }: { total: number; active: number }) {
   );
 }
 
-// 主卡片内容（单个地点的沉浸式展示）
-function SpotSlide({
+// 单张卡片（只展示照片，无景点描述）
+function Card({
   spot,
   memoryList,
-  isVisible,
+  photoIdx,
+  onPhotoChange,
 }: {
   spot: Spot;
   memoryList: Memory[];
-  isVisible: boolean;
+  photoIdx: number;
+  onPhotoChange: (i: number) => void;
 }) {
   const photos = getSpotPhotos(memoryList);
-  const [photoIdx, setPhotoIdx] = useState(0);
   const [photoDir, setPhotoDir] = useState(0);
-  const latestMemory = memoryList[0];
 
-  useEffect(() => {
-    if (isVisible) setPhotoIdx(0);
-  }, [isVisible, spot.id]);
-
-  const goPhoto = (dir: 1 | -1) => {
+  const goPhoto = (dir: 1 | -1, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = Math.max(0, Math.min(photos.length - 1, photoIdx + dir));
     setPhotoDir(dir);
-    setPhotoIdx((i) => Math.max(0, Math.min(photos.length - 1, i + dir)));
+    onPhotoChange(next);
   };
-
-  const hasPhotos = photos.length > 0;
 
   return (
     <div
       style={{
         width: "100%",
         height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "0 24px",
-        userSelect: "none",
+        borderRadius: 24,
+        overflow: "hidden",
+        position: "relative",
+        boxShadow: "0 24px 64px rgba(0,0,0,0.6), 0 6px 20px rgba(0,0,0,0.3)",
+        background: "rgba(30,24,32,0.9)",
       }}
     >
-      {/* ── 上方：地点标题区 ── */}
-      <motion.div
-        initial={{ opacity: 0, y: -16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05, duration: 0.4 }}
-        style={{ textAlign: "center", marginBottom: 24, width: "100%" }}
-      >
-        <div style={{ fontSize: 36, lineHeight: 1, marginBottom: 8 }}>
-          {spot.emoji ?? "📍"}
-        </div>
-        <h2
-          style={{
-            fontSize: "1.5rem",
-            fontWeight: 800,
-            color: "#fff",
-            margin: 0,
-            letterSpacing: "0.02em",
-            textShadow: "0 2px 12px rgba(0,0,0,0.4)",
-          }}
-        >
-          {spot.name}
-        </h2>
-        {latestMemory?.date && (
-          <p
-            style={{
-              fontSize: "0.78rem",
-              color: colors.bloom,
-              marginTop: 6,
-              opacity: 0.9,
-              fontWeight: 500,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-            }}
-          >
-            {latestMemory.date}
-          </p>
-        )}
-      </motion.div>
-
-      {/* ── 中间：大图区 ── */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.92 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.1, duration: 0.45, type: "spring", stiffness: 220, damping: 22 }}
-        style={{
-          width: "100%",
-          maxWidth: 340,
-          aspectRatio: "3/4",
-          borderRadius: 24,
-          overflow: "hidden",
-          position: "relative",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.55), 0 4px 16px rgba(0,0,0,0.3)",
-          background: "rgba(255,255,255,0.06)",
-          flexShrink: 0,
-        }}
-      >
-        {hasPhotos ? (
-          <>
-            <AnimatePresence initial={false} mode="wait" custom={photoDir}>
-              <motion.img
-                key={`${spot.id}-photo-${photoIdx}`}
-                src={photos[photoIdx]}
-                alt={spot.name}
-                custom={photoDir}
-                variants={{
-                  enter: (d: number) => ({ x: d > 0 ? "60%" : "-60%", opacity: 0, scale: 0.92 }),
-                  center: { x: 0, opacity: 1, scale: 1 },
-                  exit: (d: number) => ({ x: d > 0 ? "-40%" : "40%", opacity: 0, scale: 0.95 }),
-                }}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.32, ease: [0.32, 0, 0.67, 0] }}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
-                draggable={false}
-              />
-            </AnimatePresence>
-
-            {/* 图片左右切换 */}
-            {photos.length > 1 && (
-              <>
-                {photoIdx > 0 && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); goPhoto(-1); }}
-                    style={{
-                      position: "absolute", left: 10, top: "50%",
-                      transform: "translateY(-50%)",
-                      width: 32, height: 32, borderRadius: "50%",
-                      background: "rgba(0,0,0,0.38)", border: "none",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      cursor: "pointer", color: "#fff", zIndex: 10,
-                    }}
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                )}
-                {photoIdx < photos.length - 1 && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); goPhoto(1); }}
-                    style={{
-                      position: "absolute", right: 10, top: "50%",
-                      transform: "translateY(-50%)",
-                      width: 32, height: 32, borderRadius: "50%",
-                      background: "rgba(0,0,0,0.38)", border: "none",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      cursor: "pointer", color: "#fff", zIndex: 10,
-                    }}
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                )}
-              </>
-            )}
-
-            {/* 底部渐变 + 图片计数 */}
-            <div
+      {photos.length > 0 ? (
+        <>
+          <AnimatePresence initial={false} mode="wait" custom={photoDir}>
+            <motion.img
+              key={`${spot.id}-p${photoIdx}`}
+              src={photos[photoIdx]}
+              alt={spot.name}
+              custom={photoDir}
+              variants={{
+                enter: (d: number) => ({ x: d > 0 ? "55%" : "-55%", opacity: 0 }),
+                center: { x: 0, opacity: 1 },
+                exit: (d: number) => ({ x: d > 0 ? "-40%" : "40%", opacity: 0 }),
+              }}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.28, ease: [0.32, 0, 0.67, 0] }}
+              draggable={false}
               style={{
-                position: "absolute", bottom: 0, left: 0, right: 0,
-                background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)",
-                height: 80, pointerEvents: "none",
+                position: "absolute", inset: 0,
+                width: "100%", height: "100%", objectFit: "cover",
               }}
             />
-            {photos.length > 1 && (
+          </AnimatePresence>
+
+          {/* 上下渐变遮罩 */}
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.38) 0%, transparent 30%, transparent 60%, rgba(0,0,0,0.52) 100%)",
+          }} />
+
+          {/* 内部左右箭头（仅多张时） */}
+          {photos.length > 1 && (
+            <>
+              {photoIdx > 0 && (
+                <button onClick={(e) => goPhoto(-1, e)} style={{
+                  position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
+                  width: 30, height: 30, borderRadius: "50%",
+                  background: "rgba(0,0,0,0.35)", border: "none",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", color: "#fff", zIndex: 5,
+                }}>
+                  <ChevronLeft size={15} />
+                </button>
+              )}
+              {photoIdx < photos.length - 1 && (
+                <button onClick={(e) => goPhoto(1, e)} style={{
+                  position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+                  width: 30, height: 30, borderRadius: "50%",
+                  background: "rgba(0,0,0,0.35)", border: "none",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", color: "#fff", zIndex: 5,
+                }}>
+                  <ChevronRight size={15} />
+                </button>
+              )}
+              {/* 内部底部点 */}
               <div style={{ position: "absolute", bottom: 14, left: 0, right: 0 }}>
                 <Dots total={photos.length} active={photoIdx} />
               </div>
-            )}
-          </>
-        ) : (
-          /* 无照片占位 */
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 12,
-              background: "linear-gradient(160deg, rgba(232,184,194,0.12) 0%, rgba(90,102,112,0.08) 100%)",
-            }}
-          >
-            <span style={{ fontSize: 56, opacity: 0.5 }}>{spot.emoji ?? "📍"}</span>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, opacity: 0.45 }}>
-              <Plus size={14} color="rgba(255,255,255,0.7)" />
-              <span style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.7)" }}>
-                还没有照片，点击地标添加回忆
-              </span>
-            </div>
-          </div>
-        )}
-      </motion.div>
-
-      {/* ── 下方：文字回忆 ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.18, duration: 0.4 }}
-        style={{ textAlign: "center", marginTop: 24, width: "100%", maxWidth: 340 }}
-      >
-        {latestMemory?.text ? (
-          <p
-            style={{
-              fontSize: "1.05rem",
-              fontWeight: 500,
-              color: "rgba(255,255,255,0.88)",
-              lineHeight: 1.65,
-              margin: 0,
-              textShadow: "0 1px 8px rgba(0,0,0,0.3)",
-              display: "-webkit-box",
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {latestMemory.text}
-          </p>
-        ) : spot.description ? (
-          <p
-            style={{
-              fontSize: "0.9rem",
-              color: "rgba(255,255,255,0.45)",
-              lineHeight: 1.6,
-              margin: 0,
-              fontStyle: "italic",
-            }}
-          >
-            {spot.description}
-          </p>
-        ) : (
-          <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.28)", margin: 0 }}>
-            这里还没有故事，去留下一段吧～
-          </p>
-        )}
-
-        {/* 回忆数 */}
-        {memoryList.length > 0 && (
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              marginTop: 12,
-              background: "rgba(232,184,194,0.18)",
-              borderRadius: 20,
-              padding: "4px 12px",
-            }}
-          >
-            <Heart size={12} fill={colors.bloom} color={colors.bloom} />
-            <span style={{ fontSize: "0.72rem", color: colors.bloom, fontWeight: 600 }}>
-              {memoryList.length} 段回忆 · {getSpotPhotos(memoryList).length} 张照片
-            </span>
-          </div>
-        )}
-      </motion.div>
+            </>
+          )}
+        </>
+      ) : (
+        /* 无照片占位 */
+        <div style={{
+          width: "100%", height: "100%", display: "flex",
+          alignItems: "center", justifyContent: "center",
+          background: "linear-gradient(160deg, rgba(232,184,194,0.08), rgba(30,24,32,0.95))",
+        }}>
+          <span style={{ fontSize: 64, opacity: 0.35 }}>{spot.emoji ?? "📍"}</span>
+        </div>
+      )}
     </div>
   );
 }
 
 export default function SpotCardGallery({
-  spots,
-  memories,
-  selectedSpotId,
-  onSelectSpot,
-  onClose,
+  spots, memories, selectedSpotId, onSelectSpot, onClose,
 }: SpotCardGalleryProps) {
   const initialIdx = Math.max(0, spots.findIndex((s) => s.id === selectedSpotId));
   const [currentIdx, setCurrentIdx] = useState(initialIdx);
-  const [dragDir, setDragDir] = useState(0);
+  const [photosMap, setPhotosMap] = useState<Record<number, number>>({});
 
-  const x = useMotionValue(0);
-  const bgOpacity = useTransform(x, [-200, 0, 200], [0.6, 0.88, 0.6]);
+  // 拖拽相关
+  const dragX = useMotionValue(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // selectedSpotId 从外部改变时同步
   useEffect(() => {
     const idx = spots.findIndex((s) => s.id === selectedSpotId);
     if (idx >= 0 && idx !== currentIdx) setCurrentIdx(idx);
@@ -348,219 +177,333 @@ export default function SpotCardGallery({
 
   const goTo = (idx: number) => {
     if (idx < 0 || idx >= spots.length) return;
-    setDragDir(idx > currentIdx ? 1 : -1);
     setCurrentIdx(idx);
     onSelectSpot(spots[idx].id);
+    animate(dragX, 0, { duration: 0 });
   };
 
   const spot = spots[currentIdx];
   const memoryList = spot ? (memories[spot.id] ?? []) : [];
+  const latestMemory = memoryList[0];
+  const totalPhotos = memoryList.reduce((n, m) => n + (m.photos?.length ?? (m.image ? 1 : 0)), 0);
+
+  // 卡片尺寸参数
+  const CARD_W = 260; // 主卡宽度 px（近似，实际用 vw 控制）
+  const SIDE_OFFSET = 210; // 旁边卡片中心偏移量
+  const SIDE_SCALE = 0.78;
+  const SIDE_OPACITY = 0.48;
+
+  // 用 dragX 驱动三张卡的实时位置
+  const prevX = useTransform(dragX, v => -SIDE_OFFSET + v * 0.6);
+  const currX = useTransform(dragX, v => v);
+  const nextX = useTransform(dragX, v => SIDE_OFFSET + v * 0.6);
+  const prevOpacity = useTransform(dragX, [-80, 0, 80], [SIDE_OPACITY + 0.25, SIDE_OPACITY, SIDE_OPACITY]);
+  const nextOpacity = useTransform(dragX, [-80, 0, 80], [SIDE_OPACITY, SIDE_OPACITY, SIDE_OPACITY + 0.25]);
+
+  const prevSpot = currentIdx > 0 ? spots[currentIdx - 1] : null;
+  const nextSpot = currentIdx < spots.length - 1 ? spots[currentIdx + 1] : null;
+
+  const handleDragEnd = (_: unknown, info: { offset: { x: number } }) => {
+    if (info.offset.x < -55 && nextSpot) goTo(currentIdx + 1);
+    else if (info.offset.x > 55 && prevSpot) goTo(currentIdx - 1);
+    else animate(dragX, 0, { type: "spring", stiffness: 400, damping: 35 });
+  };
+
+  const cardStyle = (xMv: ReturnType<typeof useTransform>, scale: number, opacity: ReturnType<typeof useTransform> | number, blur = 0): React.CSSProperties & { [k: string]: unknown } => ({
+    position: "absolute" as const,
+    width: "min(62vw, 260px)",
+    aspectRatio: "3/4",
+    top: "50%",
+    left: "50%",
+    marginLeft: "calc(min(62vw, 260px) / -2)",
+    marginTop: "calc(min(62vw, 260px) * 4/3 / -2)",
+  });
 
   return (
-    /* 全屏暗色遮罩 */
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
+      transition={{ duration: 0.22 }}
       style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1800,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
+        position: "fixed", inset: 0, zIndex: 1800,
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
         fontFamily: "system-ui, -apple-system, sans-serif",
+        overflow: "hidden",
       }}
     >
-      {/* 模糊背景 */}
+      {/* 暗色磨砂背景 */}
       <motion.div
         style={{
-          position: "absolute",
-          inset: 0,
-          background: "rgba(12,10,14,0.82)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
+          position: "absolute", inset: 0,
+          background: "rgba(10,8,12,0.86)",
+          backdropFilter: "blur(22px)",
+          WebkitBackdropFilter: "blur(22px)",
         }}
         onClick={onClose}
       />
 
-      {/* 动态色彩光晕（跟随当前地点颜色） */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: `radial-gradient(ellipse 70% 50% at 50% 60%, rgba(232,184,194,0.12) 0%, transparent 70%)`,
-          pointerEvents: "none",
-        }}
-      />
+      {/* 粉色光晕 */}
+      <div style={{
+        position: "absolute", inset: 0, pointerEvents: "none",
+        background: "radial-gradient(ellipse 80% 55% at 50% 58%, rgba(232,184,194,0.1) 0%, transparent 70%)",
+      }} />
 
-      {/* 关闭按钮 */}
-      <button
-        onClick={onClose}
-        style={{
-          position: "absolute",
-          top: 20,
-          right: 20,
-          zIndex: 10,
-          width: 38,
-          height: 38,
-          borderRadius: "50%",
-          background: "rgba(255,255,255,0.12)",
-          border: "1px solid rgba(255,255,255,0.18)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          color: "#fff",
-          backdropFilter: "blur(8px)",
-        }}
-      >
+      {/* 关闭 */}
+      <button onClick={onClose} style={{
+        position: "absolute", top: 20, right: 20, zIndex: 20,
+        width: 38, height: 38, borderRadius: "50%",
+        background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.16)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "pointer", color: "#fff", backdropFilter: "blur(8px)",
+      }}>
         <X size={16} />
       </button>
 
-      {/* 地点总数 + 当前位置 */}
-      <div
-        style={{
-          position: "absolute",
-          top: 24,
-          left: 0,
-          right: 0,
-          textAlign: "center",
-          zIndex: 10,
-          pointerEvents: "none",
-        }}
-      >
-        <span
-          style={{
-            fontSize: "0.72rem",
-            color: "rgba(255,255,255,0.4)",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            fontWeight: 600,
-          }}
-        >
+      {/* 顶部：N/Total */}
+      <div style={{
+        position: "absolute", top: 26, left: 0, right: 0,
+        textAlign: "center", zIndex: 10, pointerEvents: "none",
+      }}>
+        <span style={{
+          fontSize: "0.68rem", color: "rgba(255,255,255,0.38)",
+          letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600,
+        }}>
           {currentIdx + 1} / {spots.length}
         </span>
       </div>
 
-      {/* 可拖拽的内容区域 */}
-      <motion.div
-        key={`slide-${currentIdx}`}
-        custom={dragDir}
-        variants={{
-          enter: (d: number) => ({ x: d > 0 ? "50%" : "-50%", opacity: 0 }),
-          center: { x: 0, opacity: 1 },
-          exit: (d: number) => ({ x: d > 0 ? "-30%" : "30%", opacity: 0 }),
-        }}
-        initial="enter"
-        animate="center"
-        exit="exit"
-        transition={{ type: "spring", stiffness: 280, damping: 30 }}
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.25}
-        onDragEnd={(_, info) => {
-          if (info.offset.x < -60 && currentIdx < spots.length - 1) goTo(currentIdx + 1);
-          else if (info.offset.x > 60 && currentIdx > 0) goTo(currentIdx - 1);
-        }}
-        style={{
-          position: "relative",
-          zIndex: 5,
-          width: "100%",
-          maxWidth: 420,
-          height: "calc(100vh - 120px)",
-          display: "flex",
-          cursor: "grab",
-          touchAction: "none",
-        }}
-      >
-        <SpotSlide spot={spot} memoryList={memoryList} isVisible />
-      </motion.div>
+      {/* ── 标题区 ── */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`title-${currentIdx}`}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          transition={{ duration: 0.28 }}
+          style={{
+            position: "absolute",
+            top: "10%",
+            left: 0, right: 0,
+            textAlign: "center",
+            zIndex: 10, pointerEvents: "none",
+            padding: "0 40px",
+          }}
+        >
+          <div style={{ fontSize: 30, marginBottom: 6 }}>{spot?.emoji ?? "📍"}</div>
+          <h2 style={{
+            fontSize: "clamp(1.25rem, 5vw, 1.55rem)",
+            fontWeight: 800, color: "#fff", margin: 0,
+            letterSpacing: "0.02em",
+            textShadow: "0 2px 16px rgba(0,0,0,0.5)",
+          }}>
+            {spot?.name}
+          </h2>
+          {latestMemory?.date && (
+            <p style={{
+              fontSize: "0.75rem", color: colors.bloom,
+              marginTop: 5, opacity: 0.85,
+              fontWeight: 500, letterSpacing: "0.08em",
+            }}>
+              {latestMemory.date}
+            </p>
+          )}
+        </motion.div>
+      </AnimatePresence>
 
-      {/* 底部：左右箭头 + 地点名列表缩略 */}
+      {/* ── 三卡堆叠区 ── */}
       <div
+        ref={containerRef}
         style={{
           position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 10,
-          padding: "16px 20px 28px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          background: "linear-gradient(to top, rgba(12,10,14,0.7) 0%, transparent 100%)",
+          top: "22%", bottom: "22%",
+          left: 0, right: 0,
+          zIndex: 5,
         }}
       >
-        {/* 上一个 */}
-        <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.93 }}
-          onClick={() => goTo(currentIdx - 1)}
-          disabled={currentIdx === 0}
-          style={{
-            width: 44, height: 44, borderRadius: "50%",
-            background: currentIdx === 0 ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.14)",
-            border: "1px solid rgba(255,255,255,0.15)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: currentIdx === 0 ? "not-allowed" : "pointer",
-            color: currentIdx === 0 ? "rgba(255,255,255,0.22)" : "#fff",
-            flexShrink: 0,
-            backdropFilter: "blur(8px)",
-          }}
-        >
-          <ChevronLeft size={20} />
-        </motion.button>
+        {/* 旁边卡：上一张 */}
+        {prevSpot && (
+          <motion.div
+            style={{
+              position: "absolute",
+              width: "min(62vw, 260px)",
+              aspectRatio: "3/4",
+              top: "50%", left: "50%",
+              marginLeft: "calc(min(62vw, 260px) / -2)",
+              marginTop: "calc(min(62vw, 260px) * 4/3 / -2)",
+              x: prevX,
+              scale: SIDE_SCALE,
+              opacity: prevOpacity,
+              cursor: "pointer",
+              zIndex: 3,
+            }}
+            onClick={() => goTo(currentIdx - 1)}
+          >
+            <Card
+              spot={prevSpot}
+              memoryList={memories[prevSpot.id] ?? []}
+              photoIdx={photosMap[currentIdx - 1] ?? 0}
+              onPhotoChange={() => {}}
+            />
+          </motion.div>
+        )}
 
-        {/* 中间：小圆点导航 */}
-        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-          <Dots total={spots.length} active={currentIdx} />
-        </div>
+        {/* 旁边卡：下一张 */}
+        {nextSpot && (
+          <motion.div
+            style={{
+              position: "absolute",
+              width: "min(62vw, 260px)",
+              aspectRatio: "3/4",
+              top: "50%", left: "50%",
+              marginLeft: "calc(min(62vw, 260px) / -2)",
+              marginTop: "calc(min(62vw, 260px) * 4/3 / -2)",
+              x: nextX,
+              scale: SIDE_SCALE,
+              opacity: nextOpacity,
+              cursor: "pointer",
+              zIndex: 3,
+            }}
+            onClick={() => goTo(currentIdx + 1)}
+          >
+            <Card
+              spot={nextSpot}
+              memoryList={memories[nextSpot.id] ?? []}
+              photoIdx={photosMap[currentIdx + 1] ?? 0}
+              onPhotoChange={() => {}}
+            />
+          </motion.div>
+        )}
 
-        {/* 下一个 */}
-        <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.93 }}
-          onClick={() => goTo(currentIdx + 1)}
-          disabled={currentIdx === spots.length - 1}
+        {/* 主卡：当前 */}
+        <motion.div
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.18}
+          onDragEnd={handleDragEnd}
           style={{
-            width: 44, height: 44, borderRadius: "50%",
-            background: currentIdx === spots.length - 1 ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.14)",
-            border: "1px solid rgba(255,255,255,0.15)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: currentIdx === spots.length - 1 ? "not-allowed" : "pointer",
-            color: currentIdx === spots.length - 1 ? "rgba(255,255,255,0.22)" : "#fff",
-            flexShrink: 0,
-            backdropFilter: "blur(8px)",
+            position: "absolute",
+            width: "min(62vw, 260px)",
+            aspectRatio: "3/4",
+            top: "50%", left: "50%",
+            marginLeft: "calc(min(62vw, 260px) / -2)",
+            marginTop: "calc(min(62vw, 260px) * 4/3 / -2)",
+            x: currX,
+            scale: 1,
+            zIndex: 10,
+            cursor: "grab",
+            touchAction: "none",
           }}
+          whileTap={{ cursor: "grabbing" }}
         >
-          <ChevronRight size={20} />
-        </motion.button>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`card-${currentIdx}`}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              style={{ width: "100%", height: "100%" }}
+            >
+              <Card
+                spot={spot}
+                memoryList={memoryList}
+                photoIdx={photosMap[currentIdx] ?? 0}
+                onPhotoChange={(i) => setPhotosMap((m) => ({ ...m, [currentIdx]: i }))}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
       </div>
 
-      {/* 左右边缘提示（有相邻地点时显示） */}
-      {currentIdx > 0 && (
-        <div
+      {/* ── 底部文字区（只显示回忆文字，无景点描述） ── */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`caption-${currentIdx}`}
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.3 }}
           style={{
-            position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)",
-            width: 40, height: 80, pointerEvents: "none", zIndex: 6,
-            background: "linear-gradient(to right, rgba(255,255,255,0.06), transparent)",
-            borderRadius: "0 40px 40px 0",
+            position: "absolute",
+            bottom: "10%",
+            left: 0, right: 0,
+            textAlign: "center",
+            zIndex: 10, pointerEvents: "none",
+            padding: "0 48px",
           }}
-        />
+        >
+          {latestMemory?.text ? (
+            <p style={{
+              fontSize: "clamp(0.9rem, 3.5vw, 1.05rem)",
+              fontWeight: 500,
+              color: "rgba(255,255,255,0.82)",
+              lineHeight: 1.65, margin: "0 0 12px",
+              textShadow: "0 1px 10px rgba(0,0,0,0.4)",
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}>
+              {latestMemory.text}
+            </p>
+          ) : null}
+
+          {/* 回忆数徽章（有回忆才显示） */}
+          {memoryList.length > 0 && (
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 5,
+              background: "rgba(232,184,194,0.16)",
+              border: "1px solid rgba(232,184,194,0.25)",
+              borderRadius: 20, padding: "4px 13px",
+            }}>
+              <Heart size={11} fill={colors.bloom} color={colors.bloom} />
+              <span style={{ fontSize: "0.7rem", color: colors.bloom, fontWeight: 600 }}>
+                {memoryList.length} 段回忆 · {totalPhotos} 张照片
+              </span>
+            </div>
+          )}
+
+          {/* 外部地点圆点导航 */}
+          {spots.length > 1 && (
+            <div style={{ marginTop: 16 }}>
+              <Dots total={spots.length} active={currentIdx} />
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* 左右箭头 */}
+      {currentIdx > 0 && (
+        <motion.button
+          whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+          onClick={() => goTo(currentIdx - 1)}
+          style={{
+            position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)",
+            zIndex: 15, width: 40, height: 40, borderRadius: "50%",
+            background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", color: "#fff", backdropFilter: "blur(8px)",
+          }}
+        >
+          <ChevronLeft size={18} />
+        </motion.button>
       )}
       {currentIdx < spots.length - 1 && (
-        <div
+        <motion.button
+          whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+          onClick={() => goTo(currentIdx + 1)}
           style={{
-            position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)",
-            width: 40, height: 80, pointerEvents: "none", zIndex: 6,
-            background: "linear-gradient(to left, rgba(255,255,255,0.06), transparent)",
-            borderRadius: "40px 0 0 40px",
+            position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)",
+            zIndex: 15, width: 40, height: 40, borderRadius: "50%",
+            background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", color: "#fff", backdropFilter: "blur(8px)",
           }}
-        />
+        >
+          <ChevronRight size={18} />
+        </motion.button>
       )}
     </motion.div>
   );
