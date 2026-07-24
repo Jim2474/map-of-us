@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Spot, SpotStore } from "@/data/spots";
-import { guilinDefaultSpots } from "@/data/spots";
+import { defaultSpotsByCity } from "@/data/spots";
 import { requireAdminSession, requireSiteSession } from "@/lib/server/auth";
 import { getPrivateDataFilePath } from "@/lib/server/dataDir";
 
@@ -23,8 +23,8 @@ async function readSpotStore(): Promise<SpotStore> {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
   }
 
-  // 第一次读取时，返回桂林默认地点
-  return { guilin: guilinDefaultSpots };
+  // 第一次读取时，返回所有已启用城市的默认地点
+  return { ...defaultSpotsByCity };
 }
 
 async function writeSpotStore(store: SpotStore) {
@@ -67,8 +67,8 @@ export async function GET(request: NextRequest) {
   const store = await readSpotStore();
 
   if (cityId) {
-    // 如果是桂林且本地文件没有数据，返回默认数据
-    const spots = store[cityId] ?? (cityId === "guilin" ? guilinDefaultSpots : []);
+    // 如果本地文件没有该城市数据，返回对应城市的默认地点
+    const spots = store[cityId] ?? (defaultSpotsByCity[cityId] ?? []);
     return NextResponse.json({ spots });
   }
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
   }
 
   const store = await readSpotStore();
-  const citySpots = store[payload.cityId] ?? (payload.cityId === "guilin" ? [...guilinDefaultSpots] : []);
+  const citySpots = store[payload.cityId] ?? [...(defaultSpotsByCity[payload.cityId] ?? [])];
 
   const newSpot: Spot = {
     id: `spot-${payload.cityId}-${Date.now()}`,
@@ -123,7 +123,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   const store = await readSpotStore();
-  const citySpots = store[cityId] ?? (cityId === "guilin" ? [...guilinDefaultSpots] : []);
+  const citySpots = store[cityId] ?? [...(defaultSpotsByCity[cityId] ?? [])];
   const spotIndex = citySpots.findIndex((s) => s.id === spotId);
 
   if (spotIndex === -1) {
