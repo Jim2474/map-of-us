@@ -185,6 +185,7 @@ export default function SpotCardGallery({
   const [isEditingText, setIsEditingText] = useState(false);
   const [textInput, setTextInput] = useState("");
   const [savingText, setSavingText] = useState(false);
+  const [customTexts, setCustomTexts] = useState<Record<string, string>>({});
 
   // 拖拽相关
   const dragX = useMotionValue(0);
@@ -211,6 +212,7 @@ export default function SpotCardGallery({
   const spot = spots[currentIdx];
   const memoryList = spot ? (memories[spot.id] ?? []) : [];
   const latestMemory = memoryList[0];
+  const displayText = spot ? (customTexts[spot.id] !== undefined ? customTexts[spot.id] : latestMemory?.text) : "";
   const totalPhotos = memoryList.reduce((n, m) => n + (m.photos?.length ?? (m.image ? 1 : 0)), 0);
 
   // 保存修改后的地标名称
@@ -230,11 +232,13 @@ export default function SpotCardGallery({
   // 保存修改后的回忆文字
   const handleSaveText = async () => {
     if (!spot) return;
+    const newText = textInput.trim();
     setSavingText(true);
     try {
       if (onUpdateMemoryText) {
-        await onUpdateMemoryText(spot.id, latestMemory?.id, textInput.trim());
+        await onUpdateMemoryText(spot.id, latestMemory?.id, newText);
       }
+      setCustomTexts((prev) => ({ ...prev, [spot.id]: newText }));
       setIsEditingText(false);
     } finally {
       setSavingText(false);
@@ -637,12 +641,12 @@ export default function SpotCardGallery({
               }}
               onClick={() => {
                 if (isAdmin) {
-                  setTextInput(latestMemory?.text ?? "");
+                  setTextInput(displayText || "");
                   setIsEditingText(true);
                 }
               }}
             >
-              {latestMemory?.text ? (
+              {displayText ? (
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
                   <p style={{
                     fontSize: "clamp(0.9rem, 3.5vw, 1.05rem)",
@@ -652,7 +656,7 @@ export default function SpotCardGallery({
                     margin: 0,
                     textShadow: "0 1px 10px rgba(0,0,0,0.4)",
                   }}>
-                    {latestMemory.text}
+                    {displayText}
                   </p>
                   {isAdmin && (
                     <span style={{ color: colors.bloom, opacity: 0.8 }} title="点击修改回忆文字">

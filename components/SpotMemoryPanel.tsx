@@ -72,9 +72,50 @@ export default function SpotMemoryPanel({
   const [draftPhotos, setDraftPhotos] = useState<{ previewUrl: string; dataUrl: string }[]>([]);
   const [photoGalleryIdx, setPhotoGalleryIdx] = useState(0);
 
+  // Edit current memory state
+  const [isEditingCurrent, setIsEditingCurrent] = useState(false);
+  const [editText, setEditText] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [updatingCurrent, setUpdatingCurrent] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const currentMemory = memories[currentIdx] ?? null;
   const currentPhotos = currentMemory?.photos?.length ? currentMemory.photos : currentMemory ? [currentMemory.image] : [];
+
+  const handleUpdateCurrentMemory = async () => {
+    if (!currentMemory || !editText.trim()) return;
+    setUpdatingCurrent(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/memories", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cityId: spot.cityId,
+          memoryId: currentMemory.id,
+          memory: {
+            date: editDate.trim() || currentMemory.date,
+            text: editText.trim(),
+            image: currentMemory.image,
+            photos: currentMemory.photos ?? [currentMemory.image],
+          },
+        }),
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("修改失败");
+
+      const data = (await res.json()) as { memory: Memory; memories: Record<string, Memory[]> };
+      const updatedMemories = memories.map((m) => (m.id === currentMemory.id ? data.memory : m));
+      onMemoriesChanged(updatedMemories);
+      setIsEditingCurrent(false);
+    } catch {
+      setError("修改失败，请重试");
+    } finally {
+      setUpdatingCurrent(false);
+    }
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -379,17 +420,71 @@ export default function SpotMemoryPanel({
                   )}
 
                   {/* Memory text */}
-                  <div
-                    style={{
-                      fontSize: "0.88rem",
-                      color: colors.ink,
-                      lineHeight: 1.6,
-                      marginBottom: 10,
-                      fontStyle: "italic",
-                    }}
-                  >
-                    「{currentMemory?.text}」
-                  </div>
+                  {isEditingCurrent ? (
+                    <div style={{ marginBottom: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+                      <textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        placeholder="修改回忆文字..."
+                        rows={2}
+                        maxLength={80}
+                        style={{
+                          width: "100%",
+                          padding: "8px 10px",
+                          borderRadius: 8,
+                          border: `1px solid ${colors.bloom}`,
+                          fontSize: "0.88rem",
+                          outline: "none",
+                          fontFamily: "inherit",
+                          resize: "none",
+                        }}
+                      />
+                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                        <button
+                          onClick={handleUpdateCurrentMemory}
+                          disabled={updatingCurrent}
+                          style={{
+                            background: colors.rose,
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 6,
+                            padding: "4px 10px",
+                            fontSize: "0.75rem",
+                            cursor: "pointer",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {updatingCurrent ? "保存中..." : "保存"}
+                        </button>
+                        <button
+                          onClick={() => setIsEditingCurrent(false)}
+                          style={{
+                            background: colors.dim,
+                            color: colors.ink,
+                            border: "none",
+                            borderRadius: 6,
+                            padding: "4px 10px",
+                            fontSize: "0.75rem",
+                            cursor: "pointer",
+                          }}
+                        >
+                          取消
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        fontSize: "0.88rem",
+                        color: colors.ink,
+                        lineHeight: 1.6,
+                        marginBottom: 10,
+                        fontStyle: "italic",
+                      }}
+                    >
+                      「{currentMemory?.text}」
+                    </div>
+                  )}
 
                   <div
                     style={{
@@ -432,16 +527,46 @@ export default function SpotMemoryPanel({
                     )}
 
                     {isAdmin && (
-                      <button
-                        onClick={handleDelete}
-                        disabled={deleting}
-                        style={{
-                          background: "none", border: "none", cursor: "pointer",
-                          color: "#D0706A", padding: 4,
-                        }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <button
+                          onClick={() => {
+                            if (currentMemory) {
+                              setEditText(currentMemory.text);
+                              setEditDate(currentMemory.date);
+                              setIsEditingCurrent((v) => !v);
+                            }
+                          }}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: colors.rose,
+                            padding: 2,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2,
+                            fontSize: "0.72rem",
+                          }}
+                          title="修改此段回忆"
+                        >
+                          <Pencil size={13} />
+                          <span>修改</span>
+                        </button>
+                        <button
+                          onClick={handleDelete}
+                          disabled={deleting}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: colors.dim,
+                            padding: 2,
+                          }}
+                          title="删除此段回忆"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
