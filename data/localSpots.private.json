@@ -1,0 +1,228 @@
+{
+  "guilin": [
+    {
+      "id": "spot-auto-guilin-1",
+      "cityId": "guilin",
+      "name": "灵川风光水岸",
+      "description": "含有 10 张回忆照片的记录地点",
+      "lat": 25.320795333333333,
+      "lng": 110.41146500000002,
+      "emoji": "🌊",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-2",
+      "cityId": "guilin",
+      "name": "猫儿山/兴安风光",
+      "description": "含有 2 张回忆照片的记录地点",
+      "lat": 25.4176025,
+      "lng": 110.5818375,
+      "emoji": "⛰️",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-3",
+      "cityId": "guilin",
+      "name": "漓江灵川大洲岛段",
+      "description": "含有 3 张回忆照片的记录地点",
+      "lat": 25.31134,
+      "lng": 110.6667627777778,
+      "emoji": "🏞️",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-4",
+      "cityId": "guilin",
+      "name": "尧山900M山顶咖啡",
+      "description": "含有 1 张回忆照片的记录地点",
+      "lat": 25.30601333333333,
+      "lng": 110.377205,
+      "emoji": "☕",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-5",
+      "cityId": "guilin",
+      "name": "尧山900M山顶咖啡",
+      "description": "含有 2 张回忆照片的记录地点",
+      "lat": 25.3012725,
+      "lng": 110.3767425,
+      "emoji": "☕",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-6",
+      "cityId": "guilin",
+      "name": "桂林虞山/芦笛路",
+      "description": "含有 1 张回忆照片的记录地点",
+      "lat": 25.29881333333333,
+      "lng": 110.29442,
+      "emoji": "🏞️",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-7",
+      "cityId": "guilin",
+      "name": "大圩古镇/漓江风景线",
+      "description": "含有 1 张回忆照片的记录地点",
+      "lat": 25.18298666666667,
+      "lng": 110.4233783333333,
+      "emoji": "⛵",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-8",
+      "cityId": "guilin",
+      "name": "朝阳西路/市中心",
+      "description": "含有 5 张回忆照片的记录地点",
+      "lat": 25.271442333333333,
+      "lng": 110.31688100000001,
+      "emoji": "🏙️",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-9",
+      "cityId": "guilin",
+      "name": "桂林北站/福利路",
+      "description": "含有 5 张回忆照片的记录地点",
+      "lat": 25.341823333333338,
+      "lng": 110.28582833333333,
+      "emoji": "🚉",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-10",
+      "cityId": "guilin",
+      "name": "穿山公园/樟树下",
+      "description": "含有 1 张回忆照片的记录地点",
+      "lat": 25.26712166666667,
+      "lng": 110.35817,
+      "emoji": "🌳",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-11",
+      "cityId": "guilin",
+      "name": "临桂区/桂林西站线",
+      "description": "含有 3 张回忆照片的记录地点",
+      "lat": 25.245842777777778,
+      "lng": 110.18312555555558,
+      "emoji": "🚄",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-18",
+      "cityId": "guilin",
+      "name": "临桂区/桂林西站线",
+      "description": "含有 1 张回忆照片的记录地点",
+      "lat": 25.26325,
+      "lng": 110.2990033333333,
+      "emoji": "🚄",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-19",
+      "cityId": "guilin",
+      "name": "灵川生活区/日常记录",
+      "description": "含有 36 张回忆照片的记录地点",
+      "lat": 25.307503518518516,
+      "lng": 110.41061583333334,
+      "emoji": "🏠",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-20",
+      "cityId": "guilin",
+      "name": "榕杉湖公园/中心广场",
+      "description": "含有 1 张回忆照片的记录地点",
+      "lat": 25.26723666666667,
+      "lng": 110.264625,
+      "emoji": "⛲",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-21",
+      "cityId": "guilin",
+      "name": "雁山区/广西师大雁山校区",
+      "description": "含有 3 张回忆照片的记录地点",
+      "lat": 25.088391722222223,
+      "lng": 110.29873611111115,
+      "emoji": "🎓",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-guilin-22",
+      "cityId": "guilin",
+      "name": "雁山区/广西师大雁山校区",
+      "description": "含有 1 张回忆照片的记录地点",
+      "lat": 25.10372216666667,
+      "lng": 110.2865366666667,
+      "emoji": "🎓",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    }
+  ],
+  "city-450200": [
+    {
+      "id": "spot-auto-city-450200-12",
+      "cityId": "city-450200",
+      "name": "五星步行街",
+      "description": "含有 1 张回忆照片的记录地点",
+      "lat": 24.31553666666667,
+      "lng": 109.4088883333333,
+      "emoji": "🛍️",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-city-450200-13",
+      "cityId": "city-450200",
+      "name": "柳侯公园/柳江游览线",
+      "description": "含有 4 张回忆照片的记录地点",
+      "lat": 24.330342083333335,
+      "lng": 109.40536666666665,
+      "emoji": "🏯",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-city-450200-14",
+      "cityId": "city-450200",
+      "name": "箭盘山公园",
+      "description": "含有 1 张回忆照片的记录地点",
+      "lat": 24.30568666666667,
+      "lng": 109.42958,
+      "emoji": "🌳",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    }
+  ],
+  "city-450900": [
+    {
+      "id": "spot-auto-city-450900-15",
+      "cityId": "city-450900",
+      "name": "江滨路风光",
+      "description": "含有 1 张回忆照片的记录地点",
+      "lat": 22.62438,
+      "lng": 110.1545945,
+      "emoji": "🌊",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-city-450900-16",
+      "cityId": "city-450900",
+      "name": "名山街道/玉东",
+      "description": "含有 5 张回忆照片的记录地点",
+      "lat": 22.65081633333333,
+      "lng": 110.17339500000003,
+      "emoji": "📸",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    },
+    {
+      "id": "spot-auto-city-450900-17",
+      "cityId": "city-450900",
+      "name": "玉东大道/湿地公园",
+      "description": "含有 2 张回忆照片的记录地点",
+      "lat": 22.65985833333333,
+      "lng": 110.18435,
+      "emoji": "🌺",
+      "createdAt": "2026-08-02T21:00:00.000Z"
+    }
+  ]
+}
