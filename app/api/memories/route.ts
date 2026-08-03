@@ -142,6 +142,7 @@ async function writeMemoryStore(store: MemoryStore) {
 }
 
 async function uploadMemoryImages(memory: Memory): Promise<Memory> {
+  if (!isSupabaseConfigured) return memory;
   const photos = await Promise.all(
     (memory.photos?.length ? memory.photos : [memory.image]).map((photo, index) =>
       uploadDataImage(photo, `memories/${memory.cityId}/${memory.id}`, `photo-${index + 1}`),
@@ -256,6 +257,7 @@ function parseEditPayload(payload: unknown) {
 
   const safePhotos = photos.length > 0 ? photos : (isAllowedImage(image) ? [image] : []);
   const coverImage = safePhotos[0] || city.sprite;
+  const spotId = typeof payload.memory.spotId === "string" ? payload.memory.spotId : undefined;
 
   return {
     cityId: city.id,
@@ -267,6 +269,7 @@ function parseEditPayload(payload: unknown) {
       text: trimmedText,
       image: coverImage,
       photos: safePhotos.length > 0 ? safePhotos : [coverImage],
+      ...(spotId ? { spotId } : {}),
     },
   };
 }
@@ -335,12 +338,6 @@ export async function PUT(request: NextRequest) {
   const authResponse = requireAdminSession(request);
   if (authResponse) return authResponse;
 
-  try {
-    assertWritableStorageConfigured();
-  } catch {
-    return NextResponse.json({ error: "Supabase is required to import memories in production" }, { status: 503 });
-  }
-
   const payload = await request.json().catch(() => null);
 
   if (!isRecord(payload) || !isRecord(payload.memories)) {
@@ -365,12 +362,6 @@ export async function PUT(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const authResponse = requireAdminSession(request);
   if (authResponse) return authResponse;
-
-  try {
-    assertWritableStorageConfigured();
-  } catch {
-    return NextResponse.json({ error: "Supabase is required to update memories in production" }, { status: 503 });
-  }
 
   const rawPayload = await request.json().catch(() => null);
   const editPayload = parseEditPayload(rawPayload);
@@ -435,12 +426,6 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const authResponse = requireAdminSession(request);
   if (authResponse) return authResponse;
-
-  try {
-    assertWritableStorageConfigured();
-  } catch {
-    return NextResponse.json({ error: "Supabase is required to delete memories in production" }, { status: 503 });
-  }
 
   const payload = parseDeletePayload(await request.json().catch(() => null));
 

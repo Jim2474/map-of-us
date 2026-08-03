@@ -396,6 +396,7 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
           cityId: city.id,
           memoryId: targetMemory.id,
           memory: {
+            spotId,
             date: targetMemory.date,
             text: newText,
             image: targetMemory.image,

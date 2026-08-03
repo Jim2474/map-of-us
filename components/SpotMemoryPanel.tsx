@@ -95,6 +95,7 @@ export default function SpotMemoryPanel({
           cityId: spot.cityId,
           memoryId: currentMemory.id,
           memory: {
+            spotId: spot.id,
             date: editDate.trim() || currentMemory.date,
             text: editText.trim(),
             image: currentMemory.image,
