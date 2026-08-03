@@ -196,6 +196,7 @@ export default function SpotCardGallery({
   }, [selectedSpotId, galleryItems]);
 
   const [currentIdx, setCurrentIdx] = useState(initialIdx);
+  const activeItemIdRef = useRef<string | null>(null);
 
   // 内联编辑地标名称状态
   const [isEditingName, setIsEditingName] = useState(false);
@@ -214,10 +215,31 @@ export default function SpotCardGallery({
   const dragX = useMotionValue(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // 记录当前照片项ID，防止保存时弹回第一张照片
+  useEffect(() => {
+    const item = galleryItems[currentIdx];
+    if (item) {
+      activeItemIdRef.current = item.id;
+    }
+  }, [currentIdx, galleryItems]);
+
   useEffect(() => {
     if (selectedSpotId) {
-      const idx = galleryItems.findIndex((it) => it.spot.id === selectedSpotId);
-      if (idx >= 0 && idx !== currentIdx) setCurrentIdx(idx);
+      // 优先在 galleryItems 里寻找上一次浏览的照片 ID
+      if (activeItemIdRef.current) {
+        const sameItemIdx = galleryItems.findIndex((it) => it.id === activeItemIdRef.current);
+        if (sameItemIdx >= 0) {
+          if (sameItemIdx !== currentIdx) setCurrentIdx(sameItemIdx);
+          return;
+        }
+      }
+
+      // 如果选中的地标变了，才跳转到该地标的第一张
+      const currentSpotId = galleryItems[currentIdx]?.spot.id;
+      if (currentSpotId !== selectedSpotId) {
+        const spotIdx = galleryItems.findIndex((it) => it.spot.id === selectedSpotId);
+        if (spotIdx >= 0 && spotIdx !== currentIdx) setCurrentIdx(spotIdx);
+      }
     }
   }, [selectedSpotId, galleryItems]);
 
