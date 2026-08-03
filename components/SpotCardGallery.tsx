@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
-import { X, Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, Heart, ChevronLeft, ChevronRight, Pencil, Check } from "lucide-react";
 import type { Spot } from "@/data/spots";
 import type { Memory } from "@/data/memories";
 
@@ -10,8 +10,11 @@ interface SpotCardGalleryProps {
   spots: Spot[];
   memories: Record<string, Memory[]>;
   selectedSpotId: string | null;
+  isAdmin?: boolean;
   onSelectSpot: (spotId: string) => void;
   onClose: () => void;
+  onUpdateSpotName?: (spotId: string, newName: string) => Promise<void>;
+  onUpdateMemoryText?: (spotId: string, memoryId: string | undefined, newText: string) => Promise<void>;
 }
 
 const colors = {
@@ -48,7 +51,7 @@ function Dots({ total, active }: { total: number; active: number }) {
   );
 }
 
-// 单张卡片（只展示照片，无景点描述）
+// 单张卡片（只展示照片）
 function Card({
   spot,
   memoryList,
@@ -160,11 +163,28 @@ function Card({
 }
 
 export default function SpotCardGallery({
-  spots, memories, selectedSpotId, onSelectSpot, onClose,
+  spots,
+  memories,
+  selectedSpotId,
+  isAdmin = true,
+  onSelectSpot,
+  onClose,
+  onUpdateSpotName,
+  onUpdateMemoryText,
 }: SpotCardGalleryProps) {
   const initialIdx = Math.max(0, spots.findIndex((s) => s.id === selectedSpotId));
   const [currentIdx, setCurrentIdx] = useState(initialIdx);
   const [photosMap, setPhotosMap] = useState<Record<number, number>>({});
+
+  // 内联编辑地标名称状态
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [savingName, setSavingName] = useState(false);
+
+  // 内联编辑回忆文字状态
+  const [isEditingText, setIsEditingText] = useState(false);
+  const [textInput, setTextInput] = useState("");
+  const [savingText, setSavingText] = useState(false);
 
   // 拖拽相关
   const dragX = useMotionValue(0);
@@ -174,6 +194,12 @@ export default function SpotCardGallery({
     const idx = spots.findIndex((s) => s.id === selectedSpotId);
     if (idx >= 0 && idx !== currentIdx) setCurrentIdx(idx);
   }, [selectedSpotId]);
+
+  // 当切换卡片时，关闭编辑状态
+  useEffect(() => {
+    setIsEditingName(false);
+    setIsEditingText(false);
+  }, [currentIdx]);
 
   const goTo = (idx: number) => {
     if (idx < 0 || idx >= spots.length) return;
@@ -187,9 +213,36 @@ export default function SpotCardGallery({
   const latestMemory = memoryList[0];
   const totalPhotos = memoryList.reduce((n, m) => n + (m.photos?.length ?? (m.image ? 1 : 0)), 0);
 
+  // 保存修改后的地标名称
+  const handleSaveName = async () => {
+    if (!spot || !nameInput.trim()) return;
+    setSavingName(true);
+    try {
+      if (onUpdateSpotName) {
+        await onUpdateSpotName(spot.id, nameInput.trim());
+      }
+      setIsEditingName(false);
+    } finally {
+      setSavingName(false);
+    }
+  };
+
+  // 保存修改后的回忆文字
+  const handleSaveText = async () => {
+    if (!spot) return;
+    setSavingText(true);
+    try {
+      if (onUpdateMemoryText) {
+        await onUpdateMemoryText(spot.id, latestMemory?.id, textInput.trim());
+      }
+      setIsEditingText(false);
+    } finally {
+      setSavingText(false);
+    }
+  };
+
   // 卡片尺寸参数
-  const CARD_W = 260; // 主卡宽度 px（近似，实际用 vw 控制）
-  const SIDE_OFFSET = 210; // 旁边卡片中心偏移量
+  const SIDE_OFFSET = 210;
   const SIDE_SCALE = 0.78;
   const SIDE_OPACITY = 0.48;
 
@@ -208,16 +261,6 @@ export default function SpotCardGallery({
     else if (info.offset.x > 55 && prevSpot) goTo(currentIdx - 1);
     else animate(dragX, 0, { type: "spring", stiffness: 400, damping: 35 });
   };
-
-  const cardStyle = (xMv: ReturnType<typeof useTransform>, scale: number, opacity: ReturnType<typeof useTransform> | number, blur = 0): React.CSSProperties & { [k: string]: unknown } => ({
-    position: "absolute" as const,
-    width: "min(62vw, 260px)",
-    aspectRatio: "3/4",
-    top: "50%",
-    left: "50%",
-    marginLeft: "calc(min(62vw, 260px) / -2)",
-    marginTop: "calc(min(62vw, 260px) * 4/3 / -2)",
-  });
 
   return (
     <motion.div
@@ -250,7 +293,7 @@ export default function SpotCardGallery({
         background: "radial-gradient(ellipse 80% 55% at 50% 58%, rgba(232,184,194,0.1) 0%, transparent 70%)",
       }} />
 
-      {/* 关闭 */}
+      {/* 关闭按钮 */}
       <button onClick={onClose} style={{
         position: "absolute", top: 20, right: 20, zIndex: 20,
         width: 38, height: 38, borderRadius: "50%",
@@ -274,7 +317,7 @@ export default function SpotCardGallery({
         </span>
       </div>
 
-      {/* ── 标题区 ── */}
+      {/* ── 标题区（支持直接内联编辑名称） ── */}
       <AnimatePresence mode="wait">
         <motion.div
           key={`title-${currentIdx}`}
@@ -284,22 +327,111 @@ export default function SpotCardGallery({
           transition={{ duration: 0.28 }}
           style={{
             position: "absolute",
-            top: "10%",
+            top: "9%",
             left: 0, right: 0,
             textAlign: "center",
-            zIndex: 10, pointerEvents: "none",
+            zIndex: 20,
             padding: "0 40px",
           }}
         >
           <div style={{ fontSize: 30, marginBottom: 6 }}>{spot?.emoji ?? "📍"}</div>
-          <h2 style={{
-            fontSize: "clamp(1.25rem, 5vw, 1.55rem)",
-            fontWeight: 800, color: "#fff", margin: 0,
-            letterSpacing: "0.02em",
-            textShadow: "0 2px 16px rgba(0,0,0,0.5)",
-          }}>
-            {spot?.name}
-          </h2>
+          
+          {isEditingName ? (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, maxWidth: "80%" }}>
+              <input
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleSaveName(); }}
+                autoFocus
+                style={{
+                  background: "rgba(255,255,255,0.15)",
+                  border: `1.5px solid ${colors.bloom}`,
+                  borderRadius: 10,
+                  padding: "6px 14px",
+                  color: "#fff",
+                  fontSize: "1.2rem",
+                  fontWeight: 700,
+                  textAlign: "center",
+                  outline: "none",
+                  backdropFilter: "blur(8px)",
+                  width: "220px",
+                }}
+              />
+              <button
+                onClick={handleSaveName}
+                disabled={savingName}
+                style={{
+                  background: colors.rose,
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "8px 12px",
+                  color: "#fff",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Check size={16} />
+              </button>
+              <button
+                onClick={() => setIsEditingName(false)}
+                style={{
+                  background: "rgba(255,255,255,0.2)",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "8px 10px",
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                cursor: isAdmin ? "pointer" : "default",
+              }}
+              onClick={() => {
+                if (isAdmin && spot) {
+                  setNameInput(spot.name);
+                  setIsEditingName(true);
+                }
+              }}
+            >
+              <h2 style={{
+                fontSize: "clamp(1.25rem, 5vw, 1.55rem)",
+                fontWeight: 800, color: "#fff", margin: 0,
+                letterSpacing: "0.02em",
+                textShadow: "0 2px 16px rgba(0,0,0,0.5)",
+              }}>
+                {spot?.name}
+              </h2>
+              {isAdmin && (
+                <span
+                  title="点击修改地点名称"
+                  style={{
+                    background: "rgba(255,255,255,0.14)",
+                    borderRadius: "50%",
+                    padding: 5,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: colors.bloom,
+                    transition: "all 0.2s",
+                  }}
+                >
+                  <Pencil size={13} />
+                </span>
+              )}
+            </div>
+          )}
+
           {latestMemory?.date && (
             <p style={{
               fontSize: "0.75rem", color: colors.bloom,
@@ -417,7 +549,7 @@ export default function SpotCardGallery({
         </motion.div>
       </div>
 
-      {/* ── 底部文字区（只显示回忆文字，无景点描述） ── */}
+      {/* ── 底部文字区（支持直接内联编辑回忆文字） ── */}
       <AnimatePresence mode="wait">
         <motion.div
           key={`caption-${currentIdx}`}
@@ -427,36 +559,136 @@ export default function SpotCardGallery({
           transition={{ duration: 0.3 }}
           style={{
             position: "absolute",
-            bottom: "10%",
+            bottom: "8%",
             left: 0, right: 0,
             textAlign: "center",
-            zIndex: 10, pointerEvents: "none",
-            padding: "0 48px",
+            zIndex: 20,
+            padding: "0 32px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
           }}
         >
-          {latestMemory?.text ? (
-            <p style={{
-              fontSize: "clamp(0.9rem, 3.5vw, 1.05rem)",
-              fontWeight: 500,
-              color: "rgba(255,255,255,0.82)",
-              lineHeight: 1.65, margin: "0 0 12px",
-              textShadow: "0 1px 10px rgba(0,0,0,0.4)",
-              display: "-webkit-box",
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}>
-              {latestMemory.text}
-            </p>
-          ) : null}
+          {isEditingText ? (
+            <div style={{ width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+              <textarea
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                autoFocus
+                placeholder="在这里写下你们的幸福回忆故事吧..."
+                rows={2}
+                maxLength={80}
+                style={{
+                  width: "100%",
+                  background: "rgba(255,255,255,0.15)",
+                  border: `1.5px solid ${colors.bloom}`,
+                  borderRadius: 12,
+                  padding: "10px 14px",
+                  color: "#fff",
+                  fontSize: "0.95rem",
+                  lineHeight: 1.5,
+                  outline: "none",
+                  resize: "none",
+                  backdropFilter: "blur(8px)",
+                  fontFamily: "inherit",
+                }}
+              />
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={handleSaveText}
+                  disabled={savingText}
+                  style={{
+                    background: `linear-gradient(135deg, ${colors.bloom}, ${colors.rose})`,
+                    border: "none",
+                    borderRadius: 12,
+                    padding: "6px 18px",
+                    color: "#fff",
+                    fontSize: "0.82rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <Check size={14} /> 保存回忆
+                </button>
+                <button
+                  onClick={() => setIsEditingText(false)}
+                  style={{
+                    background: "rgba(255,255,255,0.2)",
+                    border: "none",
+                    borderRadius: 12,
+                    padding: "6px 14px",
+                    color: "#fff",
+                    fontSize: "0.82rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                cursor: isAdmin ? "pointer" : "default",
+                maxWidth: 420,
+              }}
+              onClick={() => {
+                if (isAdmin) {
+                  setTextInput(latestMemory?.text ?? "");
+                  setIsEditingText(true);
+                }
+              }}
+            >
+              {latestMemory?.text ? (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
+                  <p style={{
+                    fontSize: "clamp(0.9rem, 3.5vw, 1.05rem)",
+                    fontWeight: 500,
+                    color: "rgba(255,255,255,0.85)",
+                    lineHeight: 1.65,
+                    margin: 0,
+                    textShadow: "0 1px 10px rgba(0,0,0,0.4)",
+                  }}>
+                    {latestMemory.text}
+                  </p>
+                  {isAdmin && (
+                    <span style={{ color: colors.bloom, opacity: 0.8 }} title="点击修改回忆文字">
+                      <Pencil size={13} />
+                    </span>
+                  )}
+                </div>
+              ) : (
+                isAdmin && (
+                  <div style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    color: colors.bloom,
+                    fontSize: "0.85rem",
+                    background: "rgba(232,184,194,0.15)",
+                    border: "1px stroke rgba(232,184,194,0.3)",
+                    padding: "6px 14px",
+                    borderRadius: 16,
+                  }}>
+                    <Pencil size={13} />
+                    <span>点击写下属于这里的第 1 段回忆故事...</span>
+                  </div>
+                )
+              )}
+            </div>
+          )}
 
           {/* 回忆数徽章（有回忆才显示） */}
-          {memoryList.length > 0 && (
+          {memoryList.length > 0 && !isEditingText && (
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 5,
               background: "rgba(232,184,194,0.16)",
               border: "1px solid rgba(232,184,194,0.25)",
               borderRadius: 20, padding: "4px 13px",
+              marginTop: 10,
             }}>
               <Heart size={11} fill={colors.bloom} color={colors.bloom} />
               <span style={{ fontSize: "0.7rem", color: colors.bloom, fontWeight: 600 }}>
@@ -466,16 +698,16 @@ export default function SpotCardGallery({
           )}
 
           {/* 外部地点圆点导航 */}
-          {spots.length > 1 && (
-            <div style={{ marginTop: 16 }}>
+          {spots.length > 1 && !isEditingText && (
+            <div style={{ marginTop: 14 }}>
               <Dots total={spots.length} active={currentIdx} />
             </div>
           )}
         </motion.div>
       </AnimatePresence>
 
-      {/* 左右箭头 */}
-      {currentIdx > 0 && (
+      {/* 左右切换箭头 */}
+      {currentIdx > 0 && !isEditingName && !isEditingText && (
         <motion.button
           whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
           onClick={() => goTo(currentIdx - 1)}
@@ -490,7 +722,7 @@ export default function SpotCardGallery({
           <ChevronLeft size={18} />
         </motion.button>
       )}
-      {currentIdx < spots.length - 1 && (
+      {currentIdx < spots.length - 1 && !isEditingName && !isEditingText && (
         <motion.button
           whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
           onClick={() => goTo(currentIdx + 1)}

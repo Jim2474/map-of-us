@@ -370,6 +370,76 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
     setMemories((prev) => ({ ...prev, [spotId]: updatedMemories }));
   };
 
+  const handleUpdateSpotName = async (spotId: string, newName: string) => {
+    const res = await fetch("/api/spots", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cityId: city.id, spotId, name: newName }),
+      credentials: "include",
+    });
+    if (res.ok) {
+      const data = (await res.json()) as { spot: Spot; spots: Spot[] };
+      setSpots(data.spots);
+    }
+  };
+
+  const handleUpdateMemoryText = async (spotId: string, memoryId: string | undefined, newText: string) => {
+    const spotMemories = memories[spotId] ?? [];
+    const targetMemory = memoryId ? spotMemories.find((m) => m.id === memoryId) : spotMemories[0];
+
+    if (targetMemory) {
+      // Edit existing memory text
+      const res = await fetch("/api/memories", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cityId: city.id,
+          memoryId: targetMemory.id,
+          memory: {
+            date: targetMemory.date,
+            text: newText,
+            image: targetMemory.image,
+            photos: targetMemory.photos ?? [targetMemory.image],
+          },
+        }),
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { memory: Memory; memories: Record<string, Memory[]> };
+        const updatedList = (data.memories[city.id] ?? []).filter((m) => m.spotId === spotId);
+        setMemories((prev) => ({ ...prev, [spotId]: updatedList }));
+      }
+    } else {
+      // Create a new memory entry for this spot
+      const todayStr = (() => {
+        const d = new Date();
+        return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+      })();
+      const currentSpot = spots.find((s) => s.id === spotId);
+      const fallbackImage = currentSpot ? currentSpot.emoji ?? "" : "";
+      const res = await fetch("/api/memories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          memory: {
+            cityId: city.id,
+            spotId,
+            date: todayStr,
+            text: newText,
+            image: fallbackImage,
+            photos: [],
+          },
+        }),
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { memory: Memory; memories: Record<string, Memory[]> };
+        const updatedList = (data.memories[city.id] ?? []).filter((m) => m.spotId === spotId);
+        setMemories((prev) => ({ ...prev, [spotId]: updatedList }));
+      }
+    }
+  };
+
   // Total memory count for this city
   const totalMemories = Object.values(memories).reduce((sum, arr) => sum + arr.length, 0);
 
@@ -658,6 +728,7 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
               spots={spots}
               memories={memories}
               selectedSpotId={selectedSpotId}
+              isAdmin={isAdmin}
               onSelectSpot={(id) => {
                 setSelectedSpotId(id);
                 setShowNewSpotForm(false);
@@ -666,6 +737,8 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
                 setShowGallery(false);
                 setSelectedSpotId(null);
               }}
+              onUpdateSpotName={handleUpdateSpotName}
+              onUpdateMemoryText={handleUpdateMemoryText}
             />
           )}
         </AnimatePresence>
