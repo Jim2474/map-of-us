@@ -81,6 +81,10 @@ function normalizeStoredMemory(cityId: string, value: unknown): Memory[] {
     const createdAt = typeof entry.createdAt === "string" ? entry.createdAt : new Date(0).toISOString();
     const spotId = typeof entry.spotId === "string" ? entry.spotId : undefined;
 
+    const photoTexts = Array.isArray(entry.photoTexts)
+      ? entry.photoTexts.map((pt) => (typeof pt === "string" ? pt : ""))
+      : undefined;
+
     return [
       {
         id,
@@ -90,6 +94,7 @@ function normalizeStoredMemory(cityId: string, value: unknown): Memory[] {
         date,
         image,
         photos: photos.length > 0 ? photos : [image],
+        ...(photoTexts ? { photoTexts } : {}),
         text,
         createdAt,
         ...(spotId ? { spotId } : {}),
@@ -259,6 +264,10 @@ function parseEditPayload(payload: unknown) {
   const coverImage = safePhotos[0] || city.sprite;
   const spotId = typeof payload.memory.spotId === "string" ? payload.memory.spotId : undefined;
 
+  const photoTexts = Array.isArray(payload.memory.photoTexts)
+    ? payload.memory.photoTexts.map((pt) => (typeof pt === "string" ? pt : ""))
+    : undefined;
+
   return {
     cityId: city.id,
     memoryId,
@@ -269,6 +278,7 @@ function parseEditPayload(payload: unknown) {
       text: trimmedText,
       image: coverImage,
       photos: safePhotos.length > 0 ? safePhotos : [coverImage],
+      ...(photoTexts ? { photoTexts } : {}),
       ...(spotId ? { spotId } : {}),
     },
   };

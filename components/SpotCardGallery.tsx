@@ -14,7 +14,7 @@ interface SpotCardGalleryProps {
   onSelectSpot: (spotId: string) => void;
   onClose: () => void;
   onUpdateSpotName?: (spotId: string, newName: string) => Promise<void>;
-  onUpdateMemoryText?: (spotId: string, memoryId: string | undefined, newText: string) => Promise<void>;
+  onUpdateMemoryText?: (spotId: string, memoryId: string | undefined, newText: string, photoIndex?: number) => Promise<void>;
 }
 
 const colors = {
@@ -231,10 +231,12 @@ export default function SpotCardGallery({
   const spot = currentItem?.spot;
   const memory = currentItem?.memory;
 
+  const rawPhotoText = memory?.photoTexts?.[currentItem?.photoIndex ?? 0];
+  const defaultPhotoText = (currentItem?.photoIndex === 0) ? (memory?.text ?? "") : (rawPhotoText ?? "");
   const displayText = spot
     ? customTexts[currentItem?.id] !== undefined
       ? customTexts[currentItem?.id]
-      : memory?.text ?? ""
+      : defaultPhotoText
     : "";
 
   const goTo = (idx: number) => {
@@ -268,7 +270,7 @@ export default function SpotCardGallery({
     setSavingText(true);
     try {
       if (onUpdateMemoryText) {
-        await onUpdateMemoryText(spot.id, memory?.id, newText);
+        await onUpdateMemoryText(spot.id, memory?.id, newText, currentItem.photoIndex);
       }
       setCustomTexts((prev) => ({ ...prev, [currentItem.id]: newText }));
       setIsEditingText(false);

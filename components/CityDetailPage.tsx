@@ -383,12 +383,31 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
     }
   };
 
-  const handleUpdateMemoryText = async (spotId: string, memoryId: string | undefined, newText: string) => {
+  const handleUpdateMemoryText = async (
+    spotId: string,
+    memoryId: string | undefined,
+    newText: string,
+    photoIndex?: number
+  ) => {
     const spotMemories = memories[spotId] ?? [];
     const targetMemory = memoryId ? spotMemories.find((m) => m.id === memoryId) : spotMemories[0];
 
     if (targetMemory) {
-      // Edit existing memory text
+      // Build per-photo text array
+      const totalPhotosCount = targetMemory.photos?.length || 1;
+      const existingPhotoTexts = targetMemory.photoTexts
+        ? [...targetMemory.photoTexts]
+        : Array(totalPhotosCount).fill("");
+      while (existingPhotoTexts.length < totalPhotosCount) existingPhotoTexts.push("");
+      
+      if (typeof photoIndex === "number" && photoIndex >= 0) {
+        existingPhotoTexts[photoIndex] = newText;
+      }
+
+      const mainText = (typeof photoIndex === "number" && photoIndex > 0)
+        ? (targetMemory.text || "")
+        : newText;
+
       const res = await fetch("/api/memories", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -398,7 +417,8 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
           memory: {
             spotId,
             date: targetMemory.date,
-            text: newText,
+            text: mainText,
+            photoTexts: existingPhotoTexts,
             image: targetMemory.image,
             photos: targetMemory.photos ?? [targetMemory.image],
           },

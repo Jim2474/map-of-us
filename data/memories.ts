@@ -6,6 +6,7 @@ export interface Memory {
   date: string;
   image: string;
   photos?: string[];
+  photoTexts?: string[]; // 每张照片独立的专属回忆文字
   text: string;
   createdAt?: string;
   draft?: boolean;
