@@ -406,7 +406,8 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
       });
       if (res.ok) {
         const data = (await res.json()) as { memory: Memory; memories: Record<string, Memory[]> };
-        const updatedList = (data.memories[city.id] ?? []).filter((m) => m.spotId === spotId);
+        const cityAllMemories = data.memories[city.id] ?? [];
+        const updatedList = cityAllMemories.filter((m) => m.spotId === spotId || m.id === targetMemory.id);
         setMemories((prev) => ({ ...prev, [spotId]: updatedList }));
       }
     } else {
@@ -434,7 +435,8 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
       });
       if (res.ok) {
         const data = (await res.json()) as { memory: Memory; memories: Record<string, Memory[]> };
-        const updatedList = (data.memories[city.id] ?? []).filter((m) => m.spotId === spotId);
+        const cityAllMemories = data.memories[city.id] ?? [];
+        const updatedList = cityAllMemories.filter((m) => m.spotId === spotId);
         setMemories((prev) => ({ ...prev, [spotId]: updatedList }));
       }
     }

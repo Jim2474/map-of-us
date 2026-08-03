@@ -73,10 +73,7 @@ function normalizeStoredMemory(cityId: string, value: unknown): Memory[] {
     if (!isRecord(entry)) return [];
 
     const date = typeof entry.date === "string" ? entry.date.trim() : "待添加日期";
-    const text =
-      typeof entry.text === "string" && entry.text.trim().length > 0
-        ? entry.text.trim()
-        : "这段回忆还等着我们慢慢写上。";
+    const text = typeof entry.text === "string" ? entry.text.trim() : "";
     const storedImage = typeof entry.image === "string" && isAllowedImage(entry.image) ? entry.image : "";
     const photos = normalizePhotos(entry.photos);
     const image = storedImage || photos[0] || city.sprite;
@@ -237,38 +234,28 @@ function parseEditPayload(payload: unknown) {
 
   const cityId = payload.cityId;
   const memoryId = payload.memoryId;
-  const date = payload.memory.date;
-  const text = payload.memory.text;
-  const image = payload.memory.image;
+  const date = typeof payload.memory.date === "string" ? payload.memory.date : "";
+  const text = typeof payload.memory.text === "string" ? payload.memory.text : "";
+  const image = typeof payload.memory.image === "string" ? payload.memory.image : "";
   const photos = normalizePhotos(payload.memory.photos).slice(0, maxPhotosPerMemory);
 
-  if (
-    typeof cityId !== "string" ||
-    typeof memoryId !== "string" ||
-    typeof date !== "string" ||
-    typeof text !== "string" ||
-    typeof image !== "string"
-  ) {
+  if (typeof cityId !== "string" || typeof memoryId !== "string") {
     return null;
   }
 
   const city = cities.find((candidate) => candidate.id === cityId);
+  if (!city) return null;
+
   const trimmedDate = date.trim();
   const trimmedText = text.trim();
-  const normalizedDate = normalizeMemoryDate(trimmedDate);
+  const normalizedDate = normalizeMemoryDate(trimmedDate) || (trimmedDate.length > 0 ? trimmedDate : "待添加日期");
 
-  if (
-    !city ||
-    !normalizedDate ||
-    trimmedText.length === 0 ||
-    trimmedText.length > memoryTextMaxLength ||
-    !isAllowedImage(image)
-  ) {
+  if (trimmedText.length > memoryTextMaxLength) {
     return null;
   }
 
-  const safePhotos = photos.length > 0 ? photos : [image];
-  const coverImage = safePhotos.includes(image) ? image : safePhotos[0];
+  const safePhotos = photos.length > 0 ? photos : (isAllowedImage(image) ? [image] : []);
+  const coverImage = safePhotos[0] || city.sprite;
 
   return {
     cityId: city.id,
@@ -279,7 +266,7 @@ function parseEditPayload(payload: unknown) {
       date: normalizedDate,
       text: trimmedText,
       image: coverImage,
-      photos: safePhotos,
+      photos: safePhotos.length > 0 ? safePhotos : [coverImage],
     },
   };
 }
