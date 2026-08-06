@@ -1,0 +1,9 @@
+{
+  "appId": "com.mapofus.app",
+  "appName": "Our Map",
+  "webDir": "out",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

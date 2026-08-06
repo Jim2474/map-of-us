@@ -16,12 +16,18 @@ async function copyIfPresent(from, to) {
 await mkdir(standaloneNextDir, { recursive: true });
 await copyIfPresent(path.join(root, "public"), path.join(standaloneDir, "public"));
 await copyIfPresent(path.join(root, ".next", "static"), path.join(standaloneNextDir, "static"));
-await copyIfPresent(path.join(root, "data", "localMemories.json"), path.join(standaloneDir, "data", "localMemories.json"));
+await mkdir(path.join(standaloneDir, "data"), { recursive: true });
+const dataFiles = [
+  "localMemories.private.json",
+  "localSpots.private.json",
+  "appSettings.private.json",
+  "localMemories.json",
+  "localSpots.json",
+  "cityAssets.private.json",
+  "loginPhotos.private.json",
+];
+for (const fileName of dataFiles) {
+  await copyIfPresent(path.join(root, "data", fileName), path.join(standaloneDir, "data", fileName));
+}
 
-await Promise.all(
-  ["localMemories.private.json", "cityAssets.private.json", "loginPhotos.private.json"].map((fileName) =>
-    rm(path.join(standaloneDir, "data", fileName), { force: true }),
-  ),
-);
-
-console.log("[desktop] standalone assets prepared");
+console.log("[desktop] standalone assets and user data prepared");

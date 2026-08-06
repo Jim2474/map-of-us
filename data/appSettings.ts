@@ -95,6 +95,29 @@ export const readAppSettings = (): AppSettings => {
 };
 
 export const writeAppSettings = (settings: AppSettings) => {
-  window.localStorage.setItem(appSettingsStorageKey, JSON.stringify(settings));
-  window.dispatchEvent(new CustomEvent<AppSettings>(appSettingsUpdatedEvent, { detail: settings }));
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(appSettingsStorageKey, JSON.stringify(settings));
+    window.dispatchEvent(new CustomEvent<AppSettings>(appSettingsUpdatedEvent, { detail: settings }));
+    fetch("/api/app-settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ settings }),
+    }).catch(() => {});
+  }
+};
+
+export const initAppSettingsFromServer = async () => {
+  if (typeof window === "undefined") return;
+  try {
+    const res = await fetch("/api/app-settings");
+    if (res.ok) {
+      const data = (await res.json()) as { settings?: AppSettings };
+      if (data.settings && Object.keys(data.settings).length > 0) {
+        const local = readAppSettings();
+        const merged = { ...data.settings, ...local };
+        window.localStorage.setItem(appSettingsStorageKey, JSON.stringify(merged));
+        window.dispatchEvent(new CustomEvent<AppSettings>(appSettingsUpdatedEvent, { detail: merged }));
+      }
+    }
+  } catch {}
 };

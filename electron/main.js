@@ -94,6 +94,31 @@ function getFreePort(startPort) {
 function startNextServer(port) {
   fs.mkdirSync(dataDir, { recursive: true });
 
+  const bundledDataDir = path.join(appRoot, isPackaged ? ".next/standalone/data" : "data");
+  if (fs.existsSync(bundledDataDir)) {
+    const filesToInit = [
+      "localMemories.private.json",
+      "localSpots.private.json",
+      "appSettings.private.json",
+      "localMemories.json",
+      "localSpots.json",
+      "cityAssets.private.json",
+      "loginPhotos.private.json"
+    ];
+    for (const fileName of filesToInit) {
+      const srcFile = path.join(bundledDataDir, fileName);
+      const destFile = path.join(dataDir, fileName);
+      if (fs.existsSync(srcFile) && !fs.existsSync(destFile)) {
+        try {
+          fs.copyFileSync(srcFile, destFile);
+          console.log(`[electron] initialized ${fileName} to userData dataDir`);
+        } catch (e) {
+          console.error(`[electron] failed to copy ${fileName}:`, e);
+        }
+      }
+    }
+  }
+
   if (isPackaged) {
     // Run the Next standalone server inside this Electron process (not a child
     // process), so macOS shows only one Dock icon instead of a second "exec".

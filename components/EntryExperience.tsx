@@ -8,6 +8,7 @@ import { ArrowRight, Camera, Delete, Heart, KeyRound, LockKeyhole, MapPinned } f
 import { LocalPrivacyBadge, LocalPrivacyImage } from "@/components/LocalPrivacyImage";
 import {
   appSettingsUpdatedEvent,
+  initAppSettingsFromServer,
   readAppSettings,
   type AppSettings,
 } from "@/data/appSettings";
@@ -169,6 +170,7 @@ export default function EntryExperience() {
   const reverseX = useTransform(smoothX, [-0.5, 0.5], [12, -12]);
 
   useEffect(() => {
+    void initAppSettingsFromServer();
     const timer = window.setTimeout(() => {
       setSettings(readAppSettings());
       void readLoginPhotos().then(setLoginPhotos).catch(() => setLoginPhotos({}));
