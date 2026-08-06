@@ -17,7 +17,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
@@ -26,9 +25,9 @@ jobs:
           java-version: '17'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
-      - name: Build Web App & Assets
+      - name: Prepare web assets
         run: |
           mkdir -p out
           echo '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Our Map</title></head><body><div id="__next"></div></body></html>' > out/index.html
