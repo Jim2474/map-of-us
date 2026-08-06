@@ -13,22 +13,21 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v4
 
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Install Dependencies
+      - name: Install Node Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Prepare Mobile Data
+      - name: Prepare Assets
         run: |
           mkdir -p out
           echo '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Our Map</title></head><body><div id="__next"></div></body></html>' > out/index.html
@@ -37,14 +36,13 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Grant Gradle Execution Permission
-        run: chmod +x android/gradlew
+      - name: Build Android APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
 
-      - name: Build Debug APK
-        working-directory: ./android
-        run: ./gradlew assembleDebug
-
-      - name: Upload Workflow Artifact
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OurMap-Android-APK
