@@ -4,8 +4,22 @@ import path from "node:path";
 const root = process.cwd();
 const androidAssetsDir = path.join(root, "android", "app", "src", "main", "assets", "public");
 
+async function copyIfPresent(from, to) {
+  try {
+    await cp(from, to, { recursive: true, force: true });
+  } catch (error) {
+    if (error?.code !== "ENOENT") console.error(error);
+  }
+}
+
 async function prepareMobileData() {
   await mkdir(androidAssetsDir, { recursive: true });
+
+  // Copy public assets & static standalone app assets
+  await copyIfPresent(path.join(root, "public"), androidAssetsDir);
+  if (path.join(root, "out")) {
+    await copyIfPresent(path.join(root, "out"), androidAssetsDir);
+  }
 
   // Read private user data files
   const readJson = async (fileName) => {

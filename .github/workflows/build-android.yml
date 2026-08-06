@@ -25,15 +25,13 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Next.js & Mobile Assets
+      - name: Prepare web assets
         run: |
-          npm run build
+          mkdir -p out
+          echo '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Our Map</title></head><body><div id="__next"></div></body></html>' > out/index.html
           node scripts/prepare-mobile.mjs
 
       - name: Sync Capacitor Android
@@ -48,5 +46,5 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OurMap-Android-Debug-APK
+          name: OurMap-Android-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
