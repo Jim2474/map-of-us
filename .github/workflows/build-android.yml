@@ -30,7 +30,7 @@ jobs:
       - name: Install Node Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Prepare Assets
+      - name: Prepare Mobile Data & Web Assets
         run: |
           mkdir -p out
           echo '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Our Map</title></head><body><div id="__next"></div></body></html>' > out/index.html
@@ -40,8 +40,8 @@ jobs:
         run: npx cap sync android
 
       - name: Build Android APK
+        working-directory: ./android
         run: |
-          cd android
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace
 
