@@ -6,7 +6,7 @@ import { defaultSpotsByCity } from "@/data/spots";
 import { requireAdminSession, requireSiteSession } from "@/lib/server/auth";
 import { getPrivateDataFilePath } from "@/lib/server/dataDir";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 export const runtime = "nodejs";
 
 const spotStorePath = getPrivateDataFilePath("localSpots.private.json");

@@ -12,7 +12,7 @@ import { isLocalPrivacyRequest } from "@/lib/localPrivacy";
 import { getMissingAuthEnv, requireAdminSession } from "@/lib/server/auth";
 import { getPrivateDataFilePath } from "@/lib/server/dataDir";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 export const runtime = "nodejs";
 
 type LoginPhotoText = {

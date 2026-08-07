@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { AppSettings, defaultAppSettings } from "@/data/appSettings";
 import { getPrivateDataFilePath } from "@/lib/server/dataDir";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 export const runtime = "nodejs";
 
 const settingsPath = getPrivateDataFilePath("appSettings.private.json");

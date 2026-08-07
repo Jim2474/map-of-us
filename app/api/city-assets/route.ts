@@ -13,7 +13,7 @@ import { isLocalPrivacyRequest, localPrivacyImagePlaceholder } from "@/lib/local
 import { getMissingAuthEnv, hasSiteSession, requireAdminSession } from "@/lib/server/auth";
 import { getPrivateDataFilePath } from "@/lib/server/dataDir";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 export const runtime = "nodejs";
 
 type CityAssetStore = Record<string, string>;

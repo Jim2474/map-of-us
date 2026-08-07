@@ -3,7 +3,7 @@ import path from "path";
 import { NextResponse, type NextRequest } from "next/server";
 import { requireAdminSession } from "@/lib/server/auth";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 export const runtime = "nodejs";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>

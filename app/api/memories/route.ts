@@ -14,7 +14,7 @@ import { isLocalPrivacyRequest, localPrivacyImagePlaceholder } from "@/lib/local
 import { requireAdminSession, requireSiteSession } from "@/lib/server/auth";
 import { getBundledDataFilePath, getPrivateDataFilePath } from "@/lib/server/dataDir";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 export const runtime = "nodejs";
 
 type RawMemoryStore = Record<string, Memory | Memory[]>;
