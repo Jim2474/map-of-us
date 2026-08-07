@@ -30,10 +30,9 @@ jobs:
       - name: Install Node Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Prepare Mobile Data & Web Assets
+      - name: Build Web App & Mobile Assets
         run: |
-          mkdir -p out
-          echo '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Our Map</title></head><body><div id="__next"></div></body></html>' > out/index.html
+          CAPACITOR_BUILD=1 npm run build
           node scripts/prepare-mobile.mjs
 
       - name: Sync Capacitor

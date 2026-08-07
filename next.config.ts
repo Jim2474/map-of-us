@@ -1,9 +1,11 @@
 import type { NextConfig } from "next";
 
+const isMobileBuild = process.env.CAPACITOR_BUILD === "1";
+
 const nextConfig: NextConfig = {
-  output: "standalone",
-  outputFileTracingExcludes: {
-    "/*": ["data/*.private.json"],
+  output: isMobileBuild ? "export" : "standalone",
+  images: {
+    unoptimized: true,
   },
 };
 

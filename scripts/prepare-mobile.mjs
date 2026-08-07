@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, writeFile, stat } from "node:fs/promises";
 import path from "node:path";
 
 const root = process.cwd();
@@ -6,6 +6,7 @@ const androidAssetsDir = path.join(root, "android", "app", "src", "main", "asset
 
 async function copyIfPresent(from, to) {
   try {
+    await stat(from);
     await cp(from, to, { recursive: true, force: true });
   } catch (error) {
     if (error?.code !== "ENOENT") console.error(error);
@@ -15,11 +16,9 @@ async function copyIfPresent(from, to) {
 async function prepareMobileData() {
   await mkdir(androidAssetsDir, { recursive: true });
 
-  // Copy public assets & static standalone app assets
+  // Copy Next.js exported static web app files & public assets into android assets
+  await copyIfPresent(path.join(root, "out"), androidAssetsDir);
   await copyIfPresent(path.join(root, "public"), androidAssetsDir);
-  if (path.join(root, "out")) {
-    await copyIfPresent(path.join(root, "out"), androidAssetsDir);
-  }
 
   // Read private user data files
   const readJson = async (fileName) => {
