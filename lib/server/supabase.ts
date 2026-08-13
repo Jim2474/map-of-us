@@ -2,12 +2,11 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const shouldUseLocalFileStorage = process.env.MAP_OF_US_STORAGE_MODE === "local";
 
 export const supabaseStorageBucket = process.env.SUPABASE_STORAGE_BUCKET ?? "map-of-us";
 
-export const isSupabaseConfigured = !shouldUseLocalFileStorage && Boolean(supabaseUrl && supabaseServiceRoleKey);
-export const shouldRequirePersistentStorage = process.env.NODE_ENV === "production" && !shouldUseLocalFileStorage;
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseServiceRoleKey);
+export const shouldRequirePersistentStorage = process.env.NODE_ENV === "production" && !isSupabaseConfigured;
 
 export function assertWritableStorageConfigured() {
   if (shouldRequirePersistentStorage && !isSupabaseConfigured) {
@@ -16,7 +15,6 @@ export function assertWritableStorageConfigured() {
 }
 
 export function getSupabaseAdmin() {
-  if (shouldUseLocalFileStorage) return null;
   if (!supabaseUrl || !supabaseServiceRoleKey) return null;
 
   return createClient(supabaseUrl, supabaseServiceRoleKey, {

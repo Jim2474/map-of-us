@@ -18,6 +18,35 @@ const userDataDir = app.getPath("userData");
 const dataDir = process.env.MAP_OF_US_DATA_DIR || path.join(userDataDir, "data");
 const authConfigPath = path.join(userDataDir, "auth.local.json");
 
+function loadEnvLocal() {
+  const envCandidates = [
+    path.join(appRoot, ".env.local"),
+    path.join(appRoot, ".next", "standalone", ".env.local"),
+  ];
+  for (const envPath of envCandidates) {
+    if (fs.existsSync(envPath)) {
+      try {
+        const content = fs.readFileSync(envPath, "utf8");
+        for (const line of content.split("\n")) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) continue;
+          const eqIdx = trimmed.indexOf("=");
+          if (eqIdx > 0) {
+            const key = trimmed.slice(0, eqIdx).trim();
+            const val = trimmed.slice(eqIdx + 1).trim();
+            if (!process.env[key]) {
+              process.env[key] = val;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("[electron] failed to read .env.local:", e);
+      }
+    }
+  }
+}
+loadEnvLocal();
+
 let serverProcess = null;
 let mainWindow = null;
 let appUrl = "";
@@ -61,13 +90,15 @@ function getDesktopEnv(port) {
     PORT: String(port),
     HOSTNAME: host,
     MAP_OF_US_DESKTOP: "1",
-    MAP_OF_US_STORAGE_MODE: "local",
     MAP_OF_US_DATA_DIR: dataDir,
     MAP_OF_US_BUNDLED_DATA_DIR: path.join(appRoot, isPackaged ? ".next/standalone/data" : "data"),
     MAP_OF_US_AUTH_CONFIG: authConfigPath,
     SITE_PASSWORD: process.env.SITE_PASSWORD || authConfig.sitePassword,
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || authConfig.adminPassword,
     AUTH_COOKIE_SECRET: process.env.AUTH_COOKIE_SECRET || authConfig.cookieSecret,
+    SUPABASE_URL: process.env.SUPABASE_URL || "",
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+    SUPABASE_STORAGE_BUCKET: process.env.SUPABASE_STORAGE_BUCKET || "map-of-us",
   };
 }
 

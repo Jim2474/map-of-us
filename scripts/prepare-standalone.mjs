@@ -16,6 +16,7 @@ async function copyIfPresent(from, to) {
 await mkdir(standaloneNextDir, { recursive: true });
 await copyIfPresent(path.join(root, "public"), path.join(standaloneDir, "public"));
 await copyIfPresent(path.join(root, ".next", "static"), path.join(standaloneNextDir, "static"));
+await copyIfPresent(path.join(root, ".env.local"), path.join(standaloneDir, ".env.local"));
 await mkdir(path.join(standaloneDir, "data"), { recursive: true });
 const dataFiles = [
   "localMemories.private.json",
