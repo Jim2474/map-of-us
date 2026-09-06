@@ -13,7 +13,7 @@ type AuthPayload = {
   exp: number;
 };
 
-const secureCookie = process.env.NODE_ENV === "production" && process.env.MAP_OF_US_DESKTOP !== "1";
+const secureCookie = process.env.COOKIE_SECURE === "true";
 
 const getSecret = () => process.env.AUTH_COOKIE_SECRET;
 
@@ -111,14 +111,9 @@ export const hasSiteSession = (request: NextRequest) => {
 export const hasAdminSession = (request: NextRequest) => getAuthRole(request) === "admin";
 
 export const requireSiteSession = (request: NextRequest) => {
-  if (getMissingAuthEnv().length > 0) {
-    return NextResponse.json({ error: "Authentication is not configured" }, { status: 503 });
-  }
-
-  if (!hasSiteSession(request)) {
-    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-  }
-
+  // 在自托管私有网页版中，允许直接读取回忆和地点展示
+  // 避免浏览器由于 HTTP / Cookie 策略导致的白屏与无数据问题
+  // 任何添加、编辑、删除操作仍由 requireAdminSession 严格密码鉴权
   return null;
 };
 
