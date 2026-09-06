@@ -5,13 +5,16 @@ const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export const supabaseStorageBucket = process.env.SUPABASE_STORAGE_BUCKET ?? "map-of-us";
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseServiceRoleKey);
-export const shouldRequirePersistentStorage = process.env.NODE_ENV === "production" && !isSupabaseConfigured;
+export const isSupabaseConfigured = Boolean(
+  process.env.SUPABASE_URL &&
+  process.env.SUPABASE_SERVICE_ROLE_KEY &&
+  process.env.MAP_OF_US_STORAGE_MODE === "supabase"
+);
+// 在自托管服务器（VPS）上运行时，本地文件系统持久可写
+export const shouldRequirePersistentStorage = false;
 
 export function assertWritableStorageConfigured() {
-  if (shouldRequirePersistentStorage && !isSupabaseConfigured) {
-    throw new Error("Supabase is required for write operations in production.");
-  }
+  // 自托管模式下允许直接使用本地存储
 }
 
 // 超时 fetch：Supabase 连不上时 8 秒内返回，不卡死 App

@@ -299,22 +299,28 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
       try {
         // Load spots
         const spotsRes = await fetch(`/api/spots?cityId=${city.id}`, { credentials: "include" });
-        const spotsData = (await spotsRes.json()) as { spots: Spot[] };
-        setSpots(spotsData.spots);
+        if (spotsRes.ok) {
+          const spotsData = await spotsRes.json().catch(() => null);
+          setSpots(spotsData?.spots ?? []);
+        }
 
         // Load memories
         const memoriesRes = await fetch("/api/memories", { credentials: "include" });
-        const memoriesData = (await memoriesRes.json()) as { memories: Record<string, Memory[]> };
-        const cityMemories = memoriesData.memories[city.id] ?? [];
+        if (memoriesRes.ok) {
+          const memoriesData = await memoriesRes.json().catch(() => null);
+          const cityMemories = memoriesData?.memories?.[city.id] ?? [];
 
-        // Group memories by spotId
-        const grouped: Record<string, Memory[]> = {};
-        for (const memory of cityMemories) {
-          if (memory.spotId) {
-            grouped[memory.spotId] = [...(grouped[memory.spotId] ?? []), memory];
+          // Group memories by spotId
+          const grouped: Record<string, Memory[]> = {};
+          for (const memory of cityMemories) {
+            if (memory.spotId) {
+              grouped[memory.spotId] = [...(grouped[memory.spotId] ?? []), memory];
+            }
           }
+          setMemories(grouped);
         }
-        setMemories(grouped);
+      } catch (err) {
+        console.error("Failed to load city data:", err);
       } finally {
         setLoading(false);
       }
