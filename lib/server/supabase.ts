@@ -14,6 +14,13 @@ export function assertWritableStorageConfigured() {
   }
 }
 
+// 超时 fetch：Supabase 连不上时 8 秒内返回，不卡死 App
+function fetchWithTimeout(url: RequestInfo | URL, init?: RequestInit, timeoutMs = 8000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 export function getSupabaseAdmin() {
   if (!supabaseUrl || !supabaseServiceRoleKey) return null;
 
@@ -22,6 +29,9 @@ export function getSupabaseAdmin() {
       autoRefreshToken: false,
       persistSession: false,
     },
+    global: {
+      fetch: fetchWithTimeout as typeof fetch,
+    },
   });
 }
 
@@ -29,15 +39,23 @@ export async function readJsonValue<T>(key: string, fallback: T): Promise<T> {
   const supabase = getSupabaseAdmin();
   if (!supabase) return fallback;
 
-  const { data, error } = await supabase
-    .from("map_of_us_store")
-    .select("value")
-    .eq("key", key)
-    .maybeSingle();
+  try {
+    const { data, error } = await supabase
+      .from("map_of_us_store")
+      .select("value")
+      .eq("key", key)
+      .maybeSingle();
 
-  if (error) throw error;
+    if (error) {
+      console.error("[supabase] read error:", error.message);
+      return fallback;
+    }
 
-  return (data?.value as T | null) ?? fallback;
+    return (data?.value as T | null) ?? fallback;
+  } catch (e) {
+    console.error("[supabase] read failed (timeout/network):", (e as Error).message);
+    return fallback;
+  }
 }
 
 export async function writeJsonValue<T>(key: string, value: T): Promise<T> {

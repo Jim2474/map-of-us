@@ -1,6 +1,5 @@
 const { app, BrowserWindow, shell } = require("electron");
 const { spawn } = require("node:child_process");
-const { checkForUpdates } = require("./update-checker");
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const http = require("node:http");
@@ -81,8 +80,25 @@ function readOrCreateAuthConfig() {
   return config;
 }
 
+function detectSystemProxy() {
+  if (process.platform !== "darwin") return "";
+  try {
+    const { execSync } = require("node:child_process");
+    const result = execSync("scutil --proxy", { encoding: "utf8", timeout: 2000 });
+    const httpsEnabled = /HTTPSEnable\s*:\s*1/.test(result);
+    if (!httpsEnabled) return "";
+    const proxyMatch = result.match(/HTTPSProxy\s*:\s*(\S+)/);
+    const portMatch = result.match(/HTTPSPort\s*:\s*(\d+)/);
+    if (proxyMatch && portMatch) {
+      return `http://${proxyMatch[1]}:${portMatch[1]}`;
+    }
+  } catch {}
+  return "";
+}
+
 function getDesktopEnv(port) {
   const authConfig = readOrCreateAuthConfig();
+  const systemProxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY || detectSystemProxy();
 
   return {
     ...process.env,
@@ -96,9 +112,10 @@ function getDesktopEnv(port) {
     SITE_PASSWORD: process.env.SITE_PASSWORD || authConfig.sitePassword,
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || authConfig.adminPassword,
     AUTH_COOKIE_SECRET: process.env.AUTH_COOKIE_SECRET || authConfig.cookieSecret,
-    SUPABASE_URL: process.env.SUPABASE_URL || "",
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+    SUPABASE_URL: process.env.SUPABASE_URL || "https://umrxssklizjwqbuxnaic.supabase.co",
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || "sb_secret_-hBof7WFUSn_8IgzJUU_9Q_kD8Z56xu",
     SUPABASE_STORAGE_BUCKET: process.env.SUPABASE_STORAGE_BUCKET || "map-of-us",
+    ...(systemProxy ? { HTTPS_PROXY: systemProxy, HTTP_PROXY: systemProxy } : {}),
   };
 }
 
@@ -235,9 +252,7 @@ function createWindow() {
     mainWindow = null;
   });
 
-  // Check GitHub Releases for a newer version shortly after the window is up,
-  // so the check never delays the app becoming interactive.
-  setTimeout(() => checkForUpdates(mainWindow), 4000);
+  // 自动更新已禁用（自定义版本不需要）
 }
 
 app.whenReady().then(async () => {
