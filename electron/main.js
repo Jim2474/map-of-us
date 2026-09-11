@@ -69,8 +69,8 @@ function readOrCreateAuthConfig() {
   }
 
   const config = {
-    sitePassword: process.env.SITE_PASSWORD || "1234",
-    adminPassword: process.env.ADMIN_PASSWORD || "admin1234",
+    sitePassword: process.env.SITE_PASSWORD || "1127",
+    adminPassword: process.env.ADMIN_PASSWORD || "admin1127",
     cookieSecret: process.env.AUTH_COOKIE_SECRET || crypto.randomBytes(32).toString("base64url"),
   };
 

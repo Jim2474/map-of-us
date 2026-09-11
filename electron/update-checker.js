@@ -9,8 +9,8 @@ const https = require("node:https");
 // offer to open the download page. This behaves identically on macOS and
 // Windows and needs no code signing or release metadata files.
 
-const repoOwner = "zkeyoned";
-const repoName = "map-of-us-template";
+const repoOwner = "Jim2474";
+const repoName = "map-of-us";
 const releasesApiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/releases/latest`;
 const releasesPageUrl = `https://github.com/${repoOwner}/${repoName}/releases/latest`;
 

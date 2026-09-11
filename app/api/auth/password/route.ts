@@ -63,5 +63,32 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Also persist to .env.local if present so web server restarts retain new password
+  const rootDir = /*turbopackIgnore: true*/ process.cwd();
+  const envCandidates = [
+    path.join(rootDir, ".env.local"),
+    path.join(rootDir, "..", ".env.local"),
+  ];
+  for (const envPath of envCandidates) {
+    try {
+      const content = await readFile(envPath, "utf8");
+      const keyToUpdate = target === "site" ? "SITE_PASSWORD" : "ADMIN_PASSWORD";
+      let updated = false;
+      const lines = content.split("\n").map((line) => {
+        if (line.startsWith(`${keyToUpdate}=`)) {
+          updated = true;
+          return `${keyToUpdate}=${newPassword}`;
+        }
+        return line;
+      });
+      if (!updated) {
+        lines.push(`${keyToUpdate}=${newPassword}`);
+      }
+      await writeFile(envPath, lines.join("\n"), "utf8");
+    } catch {
+      // Ignore if file does not exist
+    }
+  }
+
   return NextResponse.json({ ok: true, persisted: Boolean(configPath) });
 }

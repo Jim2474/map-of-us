@@ -7,12 +7,12 @@ final class LockSettings: ObservableObject {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         if defaults.string(forKey: passcodeKey) == nil {
-            defaults.set("1234", forKey: passcodeKey)
+            defaults.set("1127", forKey: passcodeKey)
         }
     }
 
     var passcode: String {
-        defaults.string(forKey: passcodeKey) ?? "1234"
+        defaults.string(forKey: passcodeKey) ?? "1127"
     }
 
     func validate(_ candidate: String) -> Bool {
@@ -138,7 +138,7 @@ struct AppLockView: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Color.bloom)
         } else {
-            Text("原型默认密码 1234，可在「我们」里修改。")
+            Text("原型默认密码 1127，可在「我们」里修改。")
                 .font(.caption.weight(.medium))
                 .foregroundStyle(Color.ink.opacity(0.5))
         }

@@ -923,14 +923,14 @@ export function SettingsPage() {
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div className="grid gap-1.5">
-              <span className="text-xs font-semibold text-[#5A6670]/48">进入密码（你们在一起的日期，如 1223）</span>
+              <span className="text-xs font-semibold text-[#5A6670]/48">进入密码（你们在一起的日期，如 1127）</span>
               <div className="flex gap-2">
                 <input
                   className="min-h-10 w-full rounded-[7px] border border-[#D8DDD8]/80 bg-[#FAFBF7]/70 px-3 text-sm text-[#5A6670] outline-none transition focus:border-[#A8C8DC] focus:bg-white disabled:opacity-50"
                   value={newEntryPassword}
                   onChange={(event) => setNewEntryPassword(event.target.value.replace(/\D/g, "").slice(0, 8))}
                   inputMode="numeric"
-                  placeholder="如 1223"
+                  placeholder="如 1127"
                   disabled={!isAdmin}
                 />
                 <button
