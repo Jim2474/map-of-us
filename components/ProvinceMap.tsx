@@ -99,7 +99,11 @@ const isDataImageUrl = (url?: string | null): url is string =>
   typeof url === "string" && url.startsWith("data:image/");
 
 const isBrowserImageUrl = (url?: string | null): url is string =>
-  typeof url === "string" && (url.startsWith("data:image/") || url.startsWith("https://"));
+  typeof url === "string" &&
+  (url.startsWith("data:image/") ||
+    url.startsWith("https://") ||
+    url.startsWith("/uploads/") ||
+    url.startsWith("/api/uploads/"));
 
 const useAdminMode = () => {
   const [isAdmin, setIsAdmin] = useState(false);

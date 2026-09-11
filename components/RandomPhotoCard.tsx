@@ -18,7 +18,11 @@ interface RandomPhoto {
   text: string;
 }
 
-const isBrowserImageUrl = (url: string) => url.startsWith("data:image/") || url.startsWith("https://");
+const isBrowserImageUrl = (url: string) =>
+  url.startsWith("data:image/") ||
+  url.startsWith("https://") ||
+  url.startsWith("/uploads/") ||
+  url.startsWith("/api/uploads/");
 
 function collectMemories(localMemories: LocalMemoryStore) {
   const localItems = Object.values(localMemories).flat();

@@ -27,7 +27,11 @@ type MemoryItem = {
   city?: (typeof cities)[number];
 };
 
-const isBrowserImageUrl = (url: string) => url.startsWith("data:image/") || url.startsWith("https://");
+const isBrowserImageUrl = (url: string) =>
+  url.startsWith("data:image/") ||
+  url.startsWith("https://") ||
+  url.startsWith("/uploads/") ||
+  url.startsWith("/api/uploads/");
 
 const memoryMonthLabel = (memory: Memory) => {
   const match = /^(\d{4})\.(\d{2})\.\d{2}$/.exec(memory.date);

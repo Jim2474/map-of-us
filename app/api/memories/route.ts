@@ -55,6 +55,8 @@ const isAllowedImage = (value: string) =>
   value.length <= imageMaxLength &&
   (value.startsWith("/photos/") ||
     value.startsWith("/sprites/") ||
+    value.startsWith("/uploads/") ||
+    value.startsWith("/api/uploads/") ||
     value.startsWith("https://") ||
     value.startsWith("data:image/"));
 
@@ -148,7 +150,6 @@ async function writeMemoryStore(store: MemoryStore) {
 }
 
 async function uploadMemoryImages(memory: Memory): Promise<Memory> {
-  if (!isSupabaseConfigured) return memory;
   const photos = await Promise.all(
     (memory.photos?.length ? memory.photos : [memory.image]).map((photo, index) =>
       uploadDataImage(photo, `memories/${memory.cityId}/${memory.id}`, `photo-${index + 1}`),

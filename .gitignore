@@ -39,6 +39,8 @@ data/localMemories.private.json
 data/cityAssets.private.json
 data/loginPhotos.private.json
 data/*.backup-*
+data/*.bak
+data/uploads/
 
 # archived generated/source assets not used by the app
 /archive/

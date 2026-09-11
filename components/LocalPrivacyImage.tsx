@@ -23,6 +23,8 @@ const localHostnames = new Set<string>();
 const isPotentialPrivatePhoto = (src: string) =>
   src.startsWith("/photos/") ||
   src.startsWith("/logo/") ||
+  src.startsWith("/uploads/") ||
+  src.startsWith("/api/uploads/") ||
   src.startsWith("data:image/") ||
   src.startsWith("blob:") ||
   src.startsWith("https://");
@@ -121,7 +123,7 @@ export function LocalPrivacyImg({
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img className={className} src={imageSrc} alt={alt} />
+    <img className={className} src={imageSrc} alt={alt} loading="lazy" decoding="async" />
   );
 }
 

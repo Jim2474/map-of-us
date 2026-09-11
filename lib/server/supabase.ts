@@ -1,4 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
+import { mkdir, writeFile } from "fs/promises";
+import path from "path";
+import { getWritableDataDir } from "@/lib/server/dataDir";
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -91,27 +94,40 @@ export async function uploadDataImage(
   value: string,
   pathPrefix: string,
   fallbackFileName: string,
-) {
-  const supabase = getSupabaseAdmin();
-  if (!supabase || !isDataImageUrl(value)) return value;
+): Promise<string> {
+  if (!isDataImageUrl(value)) return value;
 
   const match = dataUrlPattern.exec(value);
   if (!match) return value;
 
   const [, mimeType, base64] = match;
-  const extension = extensionByMime.get(mimeType) ?? "png";
-  const filePath = `${pathPrefix}/${fallbackFileName}.${extension}`.replaceAll(/\/+/g, "/");
+  const extension = extensionByMime.get(mimeType) ?? "jpg";
   const bytes = Buffer.from(base64, "base64");
-  const { error } = await supabase.storage
-    .from(supabaseStorageBucket)
-    .upload(filePath, bytes, {
-      contentType: mimeType,
-      upsert: true,
-    });
 
-  if (error) throw error;
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
+    const filePath = `${pathPrefix}/${fallbackFileName}.${extension}`.replaceAll(/\/+/g, "/");
+    const { error } = await supabase.storage
+      .from(supabaseStorageBucket)
+      .upload(filePath, bytes, {
+        contentType: mimeType,
+        upsert: true,
+      });
 
-  const { data } = supabase.storage.from(supabaseStorageBucket).getPublicUrl(filePath);
+    if (error) throw error;
 
-  return data.publicUrl;
+    const { data } = supabase.storage.from(supabaseStorageBucket).getPublicUrl(filePath);
+    return data.publicUrl;
+  }
+
+  // Self-hosted local storage mode
+  const safePrefix = pathPrefix.replace(/[^a-zA-Z0-9_\-\/]/g, "").replace(/\.\./g, "");
+  const safeFileName = fallbackFileName.replace(/[^a-zA-Z0-9_\-]/g, "");
+  const relPath = `${safePrefix}/${safeFileName}.${extension}`.replace(/\/+/g, "/");
+
+  const targetPath = path.join(getWritableDataDir(), "uploads", relPath);
+  await mkdir(path.dirname(targetPath), { recursive: true });
+  await writeFile(targetPath, bytes);
+
+  return `/uploads/${relPath}`;
 }

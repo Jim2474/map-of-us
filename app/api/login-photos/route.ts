@@ -38,6 +38,8 @@ const isAllowedImage = (value: string) =>
   value.length <= imageMaxLength &&
   (value.startsWith("/photos/") ||
     value.startsWith("/sprites/") ||
+    value.startsWith("/uploads/") ||
+    value.startsWith("/api/uploads/") ||
     value.startsWith("https://") ||
     value.startsWith("data:image/"));
 

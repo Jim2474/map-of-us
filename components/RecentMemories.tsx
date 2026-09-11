@@ -9,7 +9,11 @@ import { useLocalMemories } from "@/data/memoryClient";
 import { memories, type Memory } from "@/data/memories";
 import { LocalPrivacyImage, LocalPrivacyImg } from "@/components/LocalPrivacyImage";
 
-const isBrowserImageUrl = (url: string) => url.startsWith("data:image/") || url.startsWith("https://");
+const isBrowserImageUrl = (url: string) =>
+  url.startsWith("data:image/") ||
+  url.startsWith("https://") ||
+  url.startsWith("/uploads/") ||
+  url.startsWith("/api/uploads/");
 const randomMemoryCount = 3;
 
 function pickRandomMemories(items: Memory[]) {

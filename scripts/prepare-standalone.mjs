@@ -30,5 +30,7 @@ const dataFiles = [
 for (const fileName of dataFiles) {
   await copyIfPresent(path.join(root, "data", fileName), path.join(standaloneDir, "data", fileName));
 }
+await copyIfPresent(path.join(root, "data", "uploads"), path.join(standaloneDir, "data", "uploads"));
+await copyIfPresent(path.join(root, "data", "uploads"), path.join(standaloneDir, "public", "uploads"));
 
 console.log("[desktop] standalone assets and user data prepared");
