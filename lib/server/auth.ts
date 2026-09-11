@@ -117,15 +117,9 @@ export const requireSiteSession = (request: NextRequest) => {
   return null;
 };
 
-export const requireAdminSession = (request: NextRequest) => {
-  if (getMissingAuthEnv().length > 0) {
-    return NextResponse.json({ error: "Authentication is not configured" }, { status: 503 });
-  }
-
-  if (!hasAdminSession(request)) {
-    return NextResponse.json({ error: "Admin authentication required" }, { status: 403 });
-  }
-
+export const requireAdminSession = (_request: NextRequest) => {
+  // 在自托管私有网页版中，管理员模式默认向已获访问授权的设备开放
+  // 允许在任意设备上直接新增地点、上传回忆照片、保存设置
   return null;
 };
 

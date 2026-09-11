@@ -21,6 +21,8 @@ import {
   type LocalMemoryStore,
 } from "@/data/progress";
 import {
+  appSettingsUpdatedEvent,
+  initAppSettingsFromServer,
   readAppSettings,
   writeAppSettings,
   defaultAnniversaryDate,
@@ -122,6 +124,19 @@ const readItems = (key: string): StoredItem[] => {
 
 const writeItems = (key: string, items: StoredItem[]) => {
   window.localStorage.setItem(key, JSON.stringify(items));
+  const fieldMap: Record<string, string> = {
+    "mapofus:favorites": "favorites",
+    "mapofus:anniversaries": "anniversaries",
+    "mapofus:capsules": "capsules",
+  };
+  const field = fieldMap[key];
+  if (field) {
+    fetch("/api/app-settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ settings: { [field]: items } }),
+    }).catch(() => {});
+  }
 };
 
 const useAdminMode = () => {
@@ -260,11 +275,22 @@ function MemoryToolPage({ config }: Readonly<{ config: ToolConfig }>) {
   const [editingId, setEditingId] = useState("");
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    setItems(readItems(config.storageKey));
+    void initAppSettingsFromServer().then(() => {
       setItems(readItems(config.storageKey));
-    }, 0);
+    });
 
-    return () => window.clearTimeout(timer);
+    const handleUpdate = () => {
+      setItems(readItems(config.storageKey));
+    };
+
+    window.addEventListener(appSettingsUpdatedEvent, handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+
+    return () => {
+      window.removeEventListener(appSettingsUpdatedEvent, handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
   }, [config.storageKey]);
 
   const cityOptions = useMemo(() => cities.slice().sort((a, b) => a.name.localeCompare(b.name, "zh-Hans-CN")), []);

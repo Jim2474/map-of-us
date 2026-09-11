@@ -8,6 +8,9 @@ export type AppSettings = {
   anniversaryLabel?: string;
   weatherCityIds?: string[];
   coupleLogo?: string;
+  favorites?: unknown[];
+  anniversaries?: unknown[];
+  capsules?: unknown[];
 };
 
 export type LoginPhotoText = {
@@ -17,9 +20,9 @@ export type LoginPhotoText = {
 
 // Neutral defaults so a fresh copy never shows the original author's personal
 // settings. Each user overrides these from the in-app settings page.
-export const defaultAnniversaryDate = "2025.01.01";
+export const defaultAnniversaryDate = "2025.11.27";
 export const defaultAnniversaryLabel = "我们在一起";
-export const defaultWeatherCityIds = ["beijing", "shanghai", "guangzhou"];
+export const defaultWeatherCityIds = ["guilin", "shanghai", "guangzhou"];
 export const maxWeatherCities = 3;
 export const defaultCoupleLogo = "/logo/couple-logo-placeholder.svg";
 
@@ -114,8 +117,17 @@ export const initAppSettingsFromServer = async () => {
       const data = (await res.json()) as { settings?: AppSettings };
       if (data.settings && Object.keys(data.settings).length > 0) {
         const local = readAppSettings();
-        const merged = { ...data.settings, ...local };
+        const merged = { ...local, ...data.settings };
         window.localStorage.setItem(appSettingsStorageKey, JSON.stringify(merged));
+        if (Array.isArray(data.settings.favorites)) {
+          window.localStorage.setItem("mapofus:favorites", JSON.stringify(data.settings.favorites));
+        }
+        if (Array.isArray(data.settings.anniversaries)) {
+          window.localStorage.setItem("mapofus:anniversaries", JSON.stringify(data.settings.anniversaries));
+        }
+        if (Array.isArray(data.settings.capsules)) {
+          window.localStorage.setItem("mapofus:capsules", JSON.stringify(data.settings.capsules));
+        }
         window.dispatchEvent(new CustomEvent<AppSettings>(appSettingsUpdatedEvent, { detail: merged }));
       }
     }

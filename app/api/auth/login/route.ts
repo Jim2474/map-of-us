@@ -45,8 +45,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid password" }, { status: 401 });
   }
 
-  const response = NextResponse.json({ ok: true, role: payload.role });
-  setAuthCookies(response, payload.role);
+  const response = NextResponse.json({ ok: true, role: "admin" });
+  setAuthCookies(response, "admin");
 
   return response;
 }

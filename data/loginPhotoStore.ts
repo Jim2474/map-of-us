@@ -181,15 +181,36 @@ const ensureMigrated = () => {
   return migrationPromise;
 };
 
-const fetchServerStore = async (): Promise<LoginPhotoServerStore> => {
-  const response = await fetch(apiEndpoint, { cache: "no-store" });
-  if (!response.ok) throw new Error(`readLoginPhotos failed (${response.status})`);
-  const data = (await response.json()) as Partial<LoginPhotoServerStore>;
+let memoryCache: LoginPhotoServerStore | null = null;
+let fetchInFlight: Promise<LoginPhotoServerStore> | null = null;
 
-  return {
-    photos: data.photos ?? {},
-    texts: data.texts ?? {},
-  };
+const fetchServerStore = async (): Promise<LoginPhotoServerStore> => {
+  if (memoryCache && Object.keys(memoryCache.photos).length > 0) {
+    return memoryCache;
+  }
+
+  if (fetchInFlight) {
+    return fetchInFlight;
+  }
+
+  fetchInFlight = (async () => {
+    try {
+      const response = await fetch(apiEndpoint);
+      if (!response.ok) throw new Error(`readLoginPhotos failed (${response.status})`);
+      const data = (await response.json()) as Partial<LoginPhotoServerStore>;
+
+      const store: LoginPhotoServerStore = {
+        photos: data.photos ?? {},
+        texts: data.texts ?? {},
+      };
+      memoryCache = store;
+      return store;
+    } finally {
+      fetchInFlight = null;
+    }
+  })();
+
+  return fetchInFlight;
 };
 
 export const readLoginPhotoStore = async (): Promise<LoginPhotoServerStore> => {
@@ -224,6 +245,7 @@ export const writeLoginPhoto = async (slotId: string, image: string): Promise<vo
     body: JSON.stringify({ slotId, image }),
   });
   if (!response.ok) throw new Error(`writeLoginPhoto failed (${response.status})`);
+  memoryCache = null;
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(loginPhotosUpdatedEvent));
   }
@@ -236,6 +258,7 @@ export const writeLoginPhotoText = async (slotId: string, text: LoginPhotoText):
     body: JSON.stringify({ slotId, text }),
   });
   if (!response.ok) throw new Error(`writeLoginPhotoText failed (${response.status})`);
+  memoryCache = null;
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(loginPhotosUpdatedEvent));
   }
@@ -248,6 +271,7 @@ export const deleteLoginPhoto = async (slotId: string): Promise<void> => {
     body: JSON.stringify({ slotId }),
   });
   if (!response.ok) throw new Error(`deleteLoginPhoto failed (${response.status})`);
+  memoryCache = null;
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(loginPhotosUpdatedEvent));
   }
@@ -260,6 +284,7 @@ export const deleteLoginPhotoText = async (slotId: string): Promise<void> => {
     body: JSON.stringify({ slotId, kind: "text" }),
   });
   if (!response.ok) throw new Error(`deleteLoginPhotoText failed (${response.status})`);
+  memoryCache = null;
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(loginPhotosUpdatedEvent));
   }

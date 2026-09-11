@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
+import zlib from "zlib";
 import { NextResponse, type NextRequest } from "next/server";
 import {
   assertWritableStorageConfigured,
@@ -155,8 +156,28 @@ export async function GET(request: NextRequest) {
   }
 
   const { photos, texts } = await readLoginPhotoStore();
+  const jsonString = JSON.stringify({ photos, texts });
+  const acceptEncoding = request.headers.get("accept-encoding") || "";
 
-  return NextResponse.json({ photos, texts });
+  if (acceptEncoding.includes("gzip")) {
+    const gzipped = zlib.gzipSync(Buffer.from(jsonString, "utf8"), { level: 6 });
+    return new NextResponse(gzipped, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Encoding": "gzip",
+        "Cache-Control": "public, max-age=60, stale-while-revalidate=600",
+      },
+    });
+  }
+
+  return new NextResponse(jsonString, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "public, max-age=60, stale-while-revalidate=600",
+    },
+  });
 }
 
 export async function PUT(request: NextRequest) {

@@ -171,11 +171,9 @@ export default function EntryExperience() {
 
   useEffect(() => {
     void initAppSettingsFromServer();
-    const timer = window.setTimeout(() => {
-      setSettings(readAppSettings());
-      void readLoginPhotos().then(setLoginPhotos).catch(() => setLoginPhotos({}));
-      void readLoginPhotoTexts().then(setLoginPhotoTexts).catch(() => setLoginPhotoTexts({}));
-    }, 0);
+    setSettings(readAppSettings());
+    void readLoginPhotos().then(setLoginPhotos).catch(() => setLoginPhotos({}));
+    void readLoginPhotoTexts().then(setLoginPhotoTexts).catch(() => setLoginPhotoTexts({}));
 
     const handleSettingsUpdate = (event: Event) => {
       const nextSettings = (event as CustomEvent<AppSettings>).detail;
@@ -190,7 +188,6 @@ export default function EntryExperience() {
     window.addEventListener(loginPhotosUpdatedEvent, handleLoginPhotosUpdate);
 
     return () => {
-      window.clearTimeout(timer);
       window.removeEventListener(appSettingsUpdatedEvent, handleSettingsUpdate);
       window.removeEventListener(loginPhotosUpdatedEvent, handleLoginPhotosUpdate);
     };
