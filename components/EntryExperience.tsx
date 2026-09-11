@@ -265,7 +265,7 @@ export default function EntryExperience() {
 
       <section className="relative z-10 grid h-full min-h-0 w-full grid-cols-1 gap-3 overflow-hidden px-4 py-4 sm:px-6 lg:grid-cols-[minmax(360px,0.86fr)_minmax(520px,1.14fr)] lg:gap-5 lg:px-8">
         <motion.div
-          className="login-panel flex min-h-0 min-w-0 max-w-full flex-col justify-between overflow-hidden rounded-[8px] border border-[#DCCFC1]/86 bg-[#FEFCF5]/74 p-4 shadow-[0_28px_80px_rgba(91,71,50,0.12)] backdrop-blur-xl sm:p-5"
+          className="login-panel mx-auto flex min-h-0 min-w-0 w-full max-w-md flex-col justify-between overflow-hidden rounded-[8px] border border-[#DCCFC1]/86 bg-[#FEFCF5]/74 p-4 shadow-[0_28px_80px_rgba(91,71,50,0.12)] backdrop-blur-xl sm:p-5 lg:max-w-full"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.58 }}
@@ -284,22 +284,47 @@ export default function EntryExperience() {
               </span>
             </div>
 
-            <div className="mt-5">
-              <p className="text-[clamp(38px,7vw,74px)] font-semibold leading-[0.9] tracking-normal text-[#273846]">
+            <div className="mt-3 sm:mt-5">
+              <p className="text-[clamp(32px,6vw,74px)] font-semibold leading-[0.9] tracking-normal text-[#273846]">
                 输入
                 <span className="block text-[#D86F82]">纪念日</span>
               </p>
-              <p className="mt-4 max-w-[430px] text-sm font-medium leading-7 text-[#61717A] sm:text-base">
+              <p className="mt-2.5 max-w-[430px] text-xs sm:text-sm font-medium leading-6 text-[#61717A]">
                 一扇只给我们的地图门，密码藏在开始的那一天。
               </p>
             </div>
 
+            {/* 移动端专属精选照片缩略图横滑条 */}
+            <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1.5 pt-0.5 lg:hidden">
+              {loginStamps.map((stamp) => (
+                <button
+                  key={`mobile-stamp-${stamp.id}`}
+                  type="button"
+                  onClick={() => setActiveId(stamp.id)}
+                  className={`relative h-12 w-10 shrink-0 overflow-hidden rounded-[6px] border transition active:scale-95 ${
+                    activeId === stamp.id
+                      ? "border-[#E8B8C2] ring-2 ring-[#E8B8C2]/60 scale-105"
+                      : "border-[#DCCFC1] opacity-75"
+                  }`}
+                  aria-label={stamp.city}
+                >
+                  <LoginPhoto
+                    src={stamp.photo}
+                    alt={stamp.city}
+                    fill
+                    sizes="40px"
+                    className="object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+
             <motion.div
-              className="mt-5 w-full min-w-0 max-w-full rounded-[8px] border border-[#E1D3C6] bg-white/54 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.74)]"
+              className="mt-3 sm:mt-5 w-full min-w-0 max-w-full rounded-[8px] border border-[#E1D3C6] bg-white/54 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.74)]"
               animate={status === "wrong" ? { x: [-8, 8, -6, 6, 0] } : { x: 0 }}
               transition={{ duration: 0.34 }}
             >
-              <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="mb-2.5 flex items-center justify-between gap-3">
                 <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#8A796C]">
                   <KeyRound className="h-4 w-4 text-[#D86F82]" />
                   anniversary code
@@ -321,7 +346,7 @@ export default function EntryExperience() {
               <div className="mt-3 grid grid-cols-[repeat(3,minmax(0,1fr))] gap-2">
                 {keys.map((key) => (
                   <button
-                    className="login-key grid h-11 place-items-center rounded-[8px] border border-[#E1D3C6] bg-[#FAFBF7]/76 text-base font-semibold text-[#344451] shadow-[0_8px_18px_rgba(91,71,50,0.05)] transition hover:-translate-y-0.5 hover:border-[#E8B8C2] hover:bg-white disabled:cursor-default disabled:opacity-54"
+                    className="login-key grid h-12 place-items-center rounded-[8px] border border-[#E1D3C6] bg-[#FAFBF7]/85 text-base font-semibold text-[#344451] shadow-[0_8px_18px_rgba(91,71,50,0.05)] transition active:scale-95 active:bg-[#F5DCE0]/60 hover:border-[#E8B8C2] hover:bg-white disabled:cursor-default disabled:opacity-54 touch-manipulation select-none"
                     key={key}
                     type="button"
                     onClick={() => pressKey(key)}

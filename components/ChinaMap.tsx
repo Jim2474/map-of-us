@@ -171,7 +171,9 @@ export default function ChinaMap({ width = 1100, height = 860, className }: Chin
 
     const dx = event.clientX - dragState.startClientX;
     const dy = event.clientY - dragState.startClientY;
-    if (Math.abs(dx) + Math.abs(dy) > 6) {
+    const dist = Math.hypot(dx, dy);
+
+    if (dist > 14) {
       if (!dragMovedRef.current) {
         try {
           event.currentTarget.setPointerCapture(event.pointerId);
@@ -200,6 +202,10 @@ export default function ChinaMap({ width = 1100, height = 860, className }: Chin
       } catch {}
       dragStateRef.current = null;
     }
+    window.setTimeout(() => {
+      dragMovedRef.current = false;
+      suppressClickRef.current = false;
+    }, 60);
   };
 
   return (
@@ -214,9 +220,9 @@ export default function ChinaMap({ width = 1100, height = 860, className }: Chin
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
     >
-      <div className="absolute left-3 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-2 rounded-full border border-[#D8DDD8]/85 bg-[#FAFBF7]/82 px-2 py-3 shadow-[0_12px_28px_rgba(90,102,112,0.1)] backdrop-blur sm:left-4">
+      <div className="absolute right-3 top-2 sm:left-4 sm:top-1/2 sm:right-auto sm:-translate-y-1/2 z-20 flex flex-col items-center gap-1 sm:gap-2 rounded-full border border-[#D8DDD8]/85 bg-[#FAFBF7]/85 p-1 sm:px-2 sm:py-3 shadow-[0_12px_28px_rgba(90,102,112,0.1)] backdrop-blur">
         <button
-          className="grid h-9 w-9 place-items-center rounded-full text-[#5A6670] transition hover:bg-[#D6E8F0]/42 disabled:opacity-35"
+          className="grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-full text-[#5A6670] transition hover:bg-[#D6E8F0]/42 active:scale-95 disabled:opacity-35"
           type="button"
           onClick={() => setClampedZoom(zoom + 0.15)}
           disabled={zoom >= maxZoom}
@@ -224,7 +230,7 @@ export default function ChinaMap({ width = 1100, height = 860, className }: Chin
         >
           <Plus className="h-4 w-4" />
         </button>
-        <div className="flex min-h-28 w-9 flex-col items-center justify-center gap-2">
+        <div className="hidden sm:flex min-h-28 w-9 flex-col items-center justify-center gap-2">
           <input
             className="map-zoom-slider"
             type="range"
@@ -241,7 +247,7 @@ export default function ChinaMap({ width = 1100, height = 860, className }: Chin
           </span>
         </div>
         <button
-          className="grid h-9 w-9 place-items-center rounded-full text-[#5A6670] transition hover:bg-[#F5DCE0]/55 disabled:opacity-35"
+          className="grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-full text-[#5A6670] transition hover:bg-[#F5DCE0]/55 active:scale-95 disabled:opacity-35"
           type="button"
           onClick={() => setClampedZoom(zoom - 0.15)}
           disabled={zoom <= minZoom}
@@ -250,7 +256,7 @@ export default function ChinaMap({ width = 1100, height = 860, className }: Chin
           <Minus className="h-4 w-4" />
         </button>
         <button
-          className="grid h-9 w-9 place-items-center rounded-full text-[#5A6670] transition hover:bg-[#D4E8D0]/48 disabled:opacity-35"
+          className="grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-full text-[#5A6670] transition hover:bg-[#D4E8D0]/48 active:scale-95 disabled:opacity-35"
           type="button"
           onClick={() => {
             setZoom(1);
@@ -320,7 +326,7 @@ export default function ChinaMap({ width = 1100, height = 860, className }: Chin
                   strokeOpacity={path.lit ? 0.95 : 0.24}
                   strokeWidth={path.lit ? 2.2 : 1.25}
                   strokeLinejoin="round"
-                  className="cursor-pointer transition-all duration-300"
+                  className="cursor-pointer touch-manipulation select-none transition-all duration-300 active:opacity-80"
                   filter={path.lit || isHovered ? "url(#visitedGlow)" : undefined}
                   onMouseEnter={() => setHoveredId(path.id)}
                   onMouseLeave={() =>
@@ -344,7 +350,7 @@ export default function ChinaMap({ width = 1100, height = 860, className }: Chin
                     stroke={colors.bloom}
                     strokeOpacity={hoveredId === path.id ? 0.5 : 0.18}
                     strokeWidth="1.5"
-                    className="cursor-pointer transition-all duration-300"
+                    className="cursor-pointer touch-manipulation select-none transition-all duration-300"
                     onMouseEnter={() => setHoveredId(path.id)}
                     onMouseLeave={() =>
                       setHoveredId((current) => (current === path.id ? null : current))

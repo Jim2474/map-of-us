@@ -811,8 +811,12 @@ export default function ProvinceMap({ province, width = 1120, height = 760 }: Pr
 
     const dx = (event.clientX - dragState.startClientX) / frameScale;
     const dy = (event.clientY - dragState.startClientY) / frameScale;
+    const screenDist = Math.hypot(
+      event.clientX - dragState.startClientX,
+      event.clientY - dragState.startClientY,
+    );
 
-    if (Math.abs(dx) + Math.abs(dy) > 6) {
+    if (screenDist > 14) {
       if (!dragMovedRef.current) {
         try {
           event.currentTarget.setPointerCapture(event.pointerId);
@@ -856,6 +860,10 @@ export default function ProvinceMap({ province, width = 1120, height = 760 }: Pr
     } else if (activePointersRef.current.size === 0) {
       setDragging(false);
     }
+    window.setTimeout(() => {
+      dragMovedRef.current = false;
+      suppressClickRef.current = false;
+    }, 60);
   };
 
   return (
@@ -941,7 +949,7 @@ export default function ProvinceMap({ province, width = 1120, height = 760 }: Pr
             return (
               <motion.button
                 key={city.id}
-                className="group absolute text-left transition duration-300"
+                className="group absolute text-left transition duration-300 touch-manipulation select-none active:scale-95"
                 initial={false}
                 animate={{
                   x: nudged ? [0, -3, 3, -2, 0] : 0,

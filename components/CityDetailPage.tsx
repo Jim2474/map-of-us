@@ -250,17 +250,23 @@ function NewSpotForm({ lat, lng, onSave, onCancel }: NewSpotFormProps) {
   );
 }
 
-// 监听地图右键点击（管理员模式下新建地点）
+// 监听地图点击与右键点击（管理员模式下新建地点，兼顾手机触屏无右键）
 interface MapClickHandlerProps {
   isAdmin: boolean;
-  onRightClick: (lat: number, lng: number) => void;
+  isAddingSpot: boolean;
+  onPlaceSpot: (lat: number, lng: number) => void;
 }
 
-function MapClickHandler({ isAdmin, onRightClick }: MapClickHandlerProps) {
+function MapClickHandler({ isAdmin, isAddingSpot, onPlaceSpot }: MapClickHandlerProps) {
   useMapEvents({
     contextmenu(e) {
       if (isAdmin) {
-        onRightClick(e.latlng.lat, e.latlng.lng);
+        onPlaceSpot(e.latlng.lat, e.latlng.lng);
+      }
+    },
+    click(e) {
+      if (isAdmin && isAddingSpot) {
+        onPlaceSpot(e.latlng.lat, e.latlng.lng);
       }
     },
   });
@@ -274,6 +280,7 @@ interface CityDetailPageProps {
 export default function CityDetailPage({ city }: CityDetailPageProps) {
   const router = useRouter();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAddingSpot, setIsAddingSpot] = useState(false);
   const [spots, setSpots] = useState<Spot[]>([]);
   const [memories, setMemories] = useState<Record<string, Memory[]>>({});
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
@@ -533,20 +540,33 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
         </div>
 
         {isAdmin && (
-          <div
+          <button
+            type="button"
+            onClick={() => {
+              setIsAddingSpot((v) => !v);
+              setSelectedSpotId(null);
+              setShowGallery(false);
+            }}
             style={{
-              pointerEvents: "none",
-              background: colors.sakura,
+              pointerEvents: "all",
+              background: isAddingSpot ? colors.deepRose : colors.sakura,
               borderRadius: 10,
               padding: "6px 12px",
               fontSize: "0.72rem",
-              color: colors.rose,
+              color: isAddingSpot ? "#fff" : colors.rose,
               fontWeight: 600,
               boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+              border: `1px solid ${colors.rose}`,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              cursor: "pointer",
+              transition: "all 0.2s ease",
             }}
           >
-            管理员 · 右键添加地点
-          </div>
+            <Plus size={13} />
+            {isAddingSpot ? "请点击地图位置" : "添加地点"}
+          </button>
         )}
 
         {/* 地标总览切换按钮 */}
@@ -616,7 +636,7 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
               minZoom={3}
             />
 
-            <MapClickHandler isAdmin={isAdmin} onRightClick={handleRightClick} />
+            <MapClickHandler isAdmin={isAdmin} isAddingSpot={isAddingSpot} onPlaceSpot={handleRightClick} />
 
             {spots.map((spot) => {
               const spotMemories = memories[spot.id] ?? [];

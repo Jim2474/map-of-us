@@ -3,6 +3,7 @@ import ChinaMap, { SouthChinaSeaInset } from "@/components/ChinaMap";
 import BackToLoginButton from "@/components/BackToLoginButton";
 import { LegendProgress, ProgressBadge, StatsPanel } from "@/components/HomeProgress";
 import RandomPhotoCard from "@/components/RandomPhotoCard";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 function BrandMark() {
   return (
@@ -56,18 +57,18 @@ function PixelSparkle({ className }: Readonly<{ className: string }>) {
 
 function Legend() {
   return (
-    <div className="space-y-5">
-      <div className="w-fit rounded-[8px] border border-[#D8DDD8]/80 bg-[#FAFBF7]/70 px-5 py-4 text-sm text-[#5A6670]/78 shadow-[0_10px_28px_rgba(90,102,112,0.08)] backdrop-blur">
-        <div className="flex items-center gap-3">
-          <span className="h-4 w-4 rounded-[2px] border border-[#E8B8C2] bg-[#F5DCE0] shadow-[0_0_10px_rgba(232,184,194,0.42)]" />
+    <div className="space-y-2 sm:space-y-5">
+      <div className="w-fit rounded-[8px] border border-[#D8DDD8]/80 bg-[#FAFBF7]/75 px-3 py-2 sm:px-5 sm:py-4 text-xs sm:text-sm text-[#5A6670]/78 shadow-[0_10px_28px_rgba(90,102,112,0.08)] backdrop-blur">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span className="h-3 w-3 sm:h-4 sm:w-4 rounded-[2px] border border-[#E8B8C2] bg-[#F5DCE0] shadow-[0_0_10px_rgba(232,184,194,0.42)]" />
           <span>已点亮</span>
-        </div>
-        <div className="mt-3 flex items-center gap-3">
-          <span className="h-4 w-4 rounded-[2px] border border-[#C8CEC8] bg-[#D8DDD8]/55" />
+          <span className="h-3 w-3 sm:h-4 sm:w-4 rounded-[2px] border border-[#C8CEC8] bg-[#D8DDD8]/55 ml-2" />
           <span>未点亮</span>
         </div>
       </div>
-      <LegendProgress />
+      <div className="hidden sm:block">
+        <LegendProgress />
+      </div>
     </div>
   );
 }
@@ -88,34 +89,35 @@ export default function MapPage() {
       <span className="absolute right-[11%] top-[19%] h-2 w-2 bg-[#D6E8F0]" aria-hidden="true" />
 
       <div className="relative z-10 flex h-full">
-        <section className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden px-6 py-7 sm:px-9">
-          <header className="flex items-start justify-between gap-5">
-            <div className="flex items-start gap-4">
+        <section className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden px-4 py-4 sm:px-9 sm:py-7">
+          <header className="flex items-start justify-between gap-3 sm:gap-5">
+            <div className="flex items-start gap-3 sm:gap-4">
               <BrandMark />
               <div>
-                <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.01em] text-[#5A6670]">
+                <h1 className="text-2xl sm:text-[28px] font-semibold leading-tight tracking-[-0.01em] text-[#5A6670]">
                   Map of Us
                 </h1>
-                <p className="mt-1 text-base font-medium text-[#5A6670]/62">我们的地图</p>
+                <p className="mt-0.5 sm:mt-1 text-sm sm:text-base font-medium text-[#5A6670]/62">我们的地图</p>
               </div>
               <ProgressBadge />
             </div>
             <BackToLoginButton />
           </header>
 
-          <div className="flex min-h-0 flex-1 items-center justify-center pb-28 pt-0 sm:pb-20 lg:pb-6">
+          <div className="flex min-h-0 flex-1 items-center justify-center pb-24 pt-0 sm:pb-20 lg:pb-6">
             <ChinaMap className="w-[min(100%,1100px)] max-w-[1100px]" width={1100} height={860} />
           </div>
 
           <RandomPhotoCard />
 
-          <div className="absolute bottom-7 left-6 flex flex-col gap-4 sm:left-9">
+          <div className="absolute bottom-[4.8rem] left-3 sm:bottom-7 sm:left-9 flex flex-col gap-2.5 sm:gap-4 z-20">
             <SouthChinaSeaInset />
             <Legend />
           </div>
         </section>
         <StatsPanel>{null}</StatsPanel>
       </div>
+      <MobileBottomNav />
     </main>
   );
 }

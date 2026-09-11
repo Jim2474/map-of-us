@@ -10,6 +10,7 @@ import {
   Map as MapIcon,
   Settings,
 } from "lucide-react";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 export type MemoryNavKey = "map" | "memories" | "favorites" | "anniversaries" | "capsule" | "settings";
 
@@ -82,8 +83,9 @@ export function MemoryPageShell({
       <span className="absolute right-[17%] top-[15%] h-2 w-2 bg-[#D6E8F0]" aria-hidden="true" />
       <div className="relative z-10 flex min-h-screen">
         <MemorySidebar active={active} />
-        <section className="min-w-0 flex-1 px-6 py-8 sm:px-10">{children}</section>
+        <section className="min-w-0 flex-1 px-4 py-6 pb-24 sm:px-10 sm:py-8 sm:pb-10">{children}</section>
       </div>
+      <MobileBottomNav />
     </main>
   );
 }
