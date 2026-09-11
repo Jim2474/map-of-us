@@ -20,6 +20,7 @@ import { chinaFeatures, makePath, makeProjectionForProvince, provinceIdOf } from
 import { cityFallbackSprite, getCitiesByProvince, type City } from "@/data/cities";
 import { getLatestMemory, sortMemoriesByTime, type Memory } from "@/data/memories";
 import { getLitCityIds, memoryStoreUpdatedEvent, type LocalMemoryStore } from "@/data/progress";
+import { fetchLocalMemories, getCachedMemories, setCachedMemories } from "@/data/memoryClient";
 import { adminModeUpdatedEvent, readAdminMode } from "@/data/adminMode";
 import type { Province } from "@/data/provinces";
 import { LocalPrivacyImage, LocalPrivacyImg } from "@/components/LocalPrivacyImage";
@@ -383,7 +384,7 @@ export default function ProvinceMap({ province, width = 1120, height = 760 }: Pr
   const [nudgedCityId, setNudgedCityId] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [frameScale, setFrameScale] = useState(1);
-  const [localMemories, setLocalMemories] = useState<LocalMemoryStore>({});
+  const [localMemories, setLocalMemories] = useState<LocalMemoryStore>(() => getCachedMemories() ?? {});
   const [cityAssets, setCityAssets] = useState<CityAssetStore>({});
   const [camera, setCameraState] = useState<MapCamera>({ scale: 1, x: 0, y: 0 });
   const provinceCities = useMemo(() => getCitiesByProvince(province.id), [province.id]);
@@ -440,20 +441,17 @@ export default function ProvinceMap({ province, width = 1120, height = 760 }: Pr
     let cancelled = false;
 
     async function loadLocalState() {
-      const [memoryResponse, assetResponse] = await Promise.all([
-        fetch("/api/memories", { cache: "no-store" }).catch(() => null),
+      const [memories, assetResponse] = await Promise.all([
+        fetchLocalMemories(),
         fetch("/api/city-assets", { cache: "no-store" }).catch(() => null),
       ]);
 
-      const memoryData = (await memoryResponse?.json().catch(() => null)) as
-        | { memories?: LocalMemoryStore }
-        | null;
       const assetData = (await assetResponse?.json().catch(() => null)) as
         | { assets?: CityAssetStore }
         | null;
 
       if (cancelled) return;
-      if (memoryData?.memories) setLocalMemories(memoryData.memories);
+      if (memories && Object.keys(memories).length > 0) setLocalMemories(memories);
       if (assetData?.assets) setCityAssets(assetData.assets);
     }
 

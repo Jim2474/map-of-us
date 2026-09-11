@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ImagePlus, Pencil, Plus, Trash2, X, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Spot } from "@/data/spots";
 import type { Memory } from "@/data/memories";
+import { setCachedMemories } from "@/data/memoryClient";
 
 interface SpotMemoryPanelProps {
   spot: Spot;
@@ -108,6 +109,7 @@ export default function SpotMemoryPanel({
       if (!res.ok) throw new Error("修改失败");
 
       const data = (await res.json()) as { memory: Memory; memories: Record<string, Memory[]> };
+      if (data?.memories) setCachedMemories(data.memories);
       const updatedMemories = memories.map((m) => (m.id === currentMemory.id ? data.memory : m));
       onMemoriesChanged(updatedMemories);
       setIsEditingCurrent(false);
@@ -162,6 +164,7 @@ export default function SpotMemoryPanel({
       if (!res.ok) throw new Error("保存失败");
 
       const data = (await res.json()) as { memory: Memory; memories: Record<string, Memory[]> };
+      if (data?.memories) setCachedMemories(data.memories);
       const updatedMemories = [data.memory, ...memories];
       onMemoriesChanged(updatedMemories);
       setTab("view");
@@ -181,12 +184,16 @@ export default function SpotMemoryPanel({
     setDeleting(true);
 
     try {
-      await fetch("/api/memories", {
+      const delRes = await fetch("/api/memories", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cityId: spot.cityId, memoryId: currentMemory.id }),
         credentials: "include",
       });
+      if (delRes.ok) {
+        const data = (await delRes.json().catch(() => null)) as { memories?: Record<string, Memory[]> } | null;
+        if (data?.memories) setCachedMemories(data.memories);
+      }
 
       const next = memories.filter((m) => m.id !== currentMemory.id);
       onMemoriesChanged(next);

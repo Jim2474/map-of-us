@@ -4,10 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Heart } from "lucide-react";
 import { cities } from "@/data/cities";
-import {
-  memoryStoreUpdatedEvent,
-  type LocalMemoryStore,
-} from "@/data/progress";
+import { type LocalMemoryStore } from "@/data/progress";
+import { useLocalMemories } from "@/data/memoryClient";
 import { memories, type Memory } from "@/data/memories";
 import { LocalPrivacyImage, LocalPrivacyImg } from "@/components/LocalPrivacyImage";
 
@@ -57,42 +55,12 @@ function MemoryThumb({ memory }: Readonly<{ memory: Memory }>) {
 }
 
 export default function RecentMemories() {
-  const [randomMemories, setRandomMemories] = useState<Memory[]>([]);
+  const { localMemories } = useLocalMemories();
 
-  useEffect(() => {
-    let cancelled = false;
-    const handleMemoryUpdate = (event: Event) => {
-      const detail = (event as CustomEvent<LocalMemoryStore>).detail;
-      if (detail) {
-        setRandomMemories(pickRandomMemories(collectMemories(detail)));
-      }
-    };
-
-    async function loadLocalMemories() {
-      const response = await fetch("/api/memories", { cache: "no-store" }).catch(() => null);
-      if (!response?.ok) {
-        if (!cancelled) setRandomMemories(pickRandomMemories(collectMemories({})));
-        return;
-      }
-
-      const data = (await response.json().catch(() => null)) as
-        | { memories?: LocalMemoryStore }
-        | null;
-
-      if (cancelled) return;
-
-      const nextLocalMemories = data?.memories ?? {};
-      setRandomMemories(pickRandomMemories(collectMemories(nextLocalMemories)));
-    }
-
-    window.addEventListener(memoryStoreUpdatedEvent, handleMemoryUpdate);
-    loadLocalMemories();
-
-    return () => {
-      cancelled = true;
-      window.removeEventListener(memoryStoreUpdatedEvent, handleMemoryUpdate);
-    };
-  }, []);
+  const randomMemories = useMemo(
+    () => pickRandomMemories(collectMemories(localMemories)),
+    [localMemories],
+  );
 
   const memoryItems = useMemo(
     () =>

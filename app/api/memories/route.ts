@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
+import zlib from "zlib";
 import { NextResponse, type NextRequest } from "next/server";
 import { cities } from "@/data/cities";
 import type { Memory } from "@/data/memories";
@@ -311,9 +312,38 @@ export async function GET(request: NextRequest) {
   const authResponse = requireSiteSession(request);
   if (authResponse) return authResponse;
 
-  const memories = await readMemoryStore();
+  const url = new URL(request.url);
+  const cityIdFilter = url.searchParams.get("cityId");
 
-  return NextResponse.json({ memories: isLocalPrivacyRequest(request) ? maskMemoryPhotos(memories) : memories });
+  const rawMemories = await readMemoryStore();
+  let memories = isLocalPrivacyRequest(request) ? maskMemoryPhotos(rawMemories) : rawMemories;
+
+  if (cityIdFilter) {
+    memories = { [cityIdFilter]: memories[cityIdFilter] ?? [] };
+  }
+
+  const jsonString = JSON.stringify({ memories });
+  const acceptEncoding = request.headers.get("accept-encoding") || "";
+
+  if (acceptEncoding.includes("gzip")) {
+    const gzipped = zlib.gzipSync(Buffer.from(jsonString, "utf8"), { level: 6 });
+    return new NextResponse(gzipped, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Encoding": "gzip",
+        "Cache-Control": "no-store",
+      },
+    });
+  }
+
+  return new NextResponse(jsonString, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
+  });
 }
 
 export async function POST(request: NextRequest) {

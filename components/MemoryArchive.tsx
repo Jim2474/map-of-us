@@ -16,9 +16,9 @@ import {
   type Memory,
 } from "@/data/memories";
 import {
-  memoryStoreUpdatedEvent,
   type LocalMemoryStore,
 } from "@/data/progress";
+import { useLocalMemories } from "@/data/memoryClient";
 import { LocalPrivacyImage, LocalPrivacyImg } from "@/components/LocalPrivacyImage";
 
 type ArchiveView = "city" | "timeline";
@@ -85,36 +85,9 @@ function MemoryCard({ item, compact = false }: Readonly<{ item: MemoryItem; comp
 }
 
 export default function MemoryArchive() {
-  const [localMemories, setLocalMemories] = useState<LocalMemoryStore>({});
+  const { localMemories, loading } = useLocalMemories();
   const [view, setView] = useState<ArchiveView>("city");
   const [expandedCities, setExpandedCities] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    let cancelled = false;
-    const handleMemoryUpdate = (event: Event) => {
-      const detail = (event as CustomEvent<LocalMemoryStore>).detail;
-      if (detail) setLocalMemories(detail);
-    };
-
-    async function loadLocalMemories() {
-      const response = await fetch("/api/memories", { cache: "no-store" }).catch(() => null);
-      if (!response?.ok) return;
-
-      const data = (await response.json().catch(() => null)) as
-        | { memories?: LocalMemoryStore }
-        | null;
-
-      if (!cancelled && data?.memories) setLocalMemories(data.memories);
-    }
-
-    window.addEventListener(memoryStoreUpdatedEvent, handleMemoryUpdate);
-    loadLocalMemories();
-
-    return () => {
-      cancelled = true;
-      window.removeEventListener(memoryStoreUpdatedEvent, handleMemoryUpdate);
-    };
-  }, []);
 
   const memoryItems = useMemo<MemoryItem[]>(() => {
     const localItems = Object.values(localMemories).flat();
@@ -204,7 +177,19 @@ export default function MemoryArchive() {
             </div>
           </header>
 
-          {memoryItems.length === 0 ? (
+          {loading && memoryItems.length === 0 ? (
+            <div className="mt-12 grid min-h-[420px] place-items-center rounded-[8px] border border-dashed border-[#D8DDD8] bg-[#FAFBF7]/58 px-6 py-14 text-center shadow-[0_14px_34px_rgba(90,102,112,0.045)] backdrop-blur">
+              <div className="max-w-[430px]">
+                <div className="mx-auto grid h-16 w-16 place-items-center rounded-[8px] border border-[#F5DCE0] bg-[#F5DCE0]/42 animate-pulse">
+                  <Heart className="h-8 w-8 fill-[#F5DCE0] text-[#E8B8C2]" />
+                </div>
+                <h2 className="mt-5 text-2xl font-semibold text-[#5A6670]">正在加载回忆相册...</h2>
+                <p className="mt-3 text-sm leading-7 text-[#5A6670]/60">
+                  马上呈现属于你们的甜蜜瞬间
+                </p>
+              </div>
+            </div>
+          ) : memoryItems.length === 0 ? (
             <div className="mt-12 grid min-h-[420px] place-items-center rounded-[8px] border border-dashed border-[#D8DDD8] bg-[#FAFBF7]/58 px-6 py-14 text-center shadow-[0_14px_34px_rgba(90,102,112,0.045)] backdrop-blur">
               <div className="max-w-[430px]">
                 <div className="mx-auto grid h-16 w-16 place-items-center rounded-[8px] border border-[#F5DCE0] bg-[#F5DCE0]/42">

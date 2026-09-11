@@ -11,6 +11,7 @@ import type { City } from "@/data/cities";
 import type { Spot } from "@/data/spots";
 import type { Memory } from "@/data/memories";
 import { adminModeUpdatedEvent, readAdminMode } from "@/data/adminMode";
+import { fetchLocalMemories, setCachedMemories } from "@/data/memoryClient";
 import SpotMemoryPanel from "@/components/SpotMemoryPanel";
 import SpotCardGallery from "@/components/SpotCardGallery";
 
@@ -304,21 +305,18 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
           setSpots(spotsData?.spots ?? []);
         }
 
-        // Load memories
-        const memoriesRes = await fetch("/api/memories", { credentials: "include" });
-        if (memoriesRes.ok) {
-          const memoriesData = await memoriesRes.json().catch(() => null);
-          const cityMemories = memoriesData?.memories?.[city.id] ?? [];
+        // Load memories from shared client cache
+        const allMemories = await fetchLocalMemories();
+        const cityMemories = allMemories[city.id] ?? [];
 
-          // Group memories by spotId
-          const grouped: Record<string, Memory[]> = {};
-          for (const memory of cityMemories) {
-            if (memory.spotId) {
-              grouped[memory.spotId] = [...(grouped[memory.spotId] ?? []), memory];
-            }
+        // Group memories by spotId
+        const grouped: Record<string, Memory[]> = {};
+        for (const memory of cityMemories) {
+          if (memory.spotId) {
+            grouped[memory.spotId] = [...(grouped[memory.spotId] ?? []), memory];
           }
-          setMemories(grouped);
         }
+        setMemories(grouped);
       } catch (err) {
         console.error("Failed to load city data:", err);
       } finally {
@@ -433,6 +431,7 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
       });
       if (res.ok) {
         const data = (await res.json()) as { memory: Memory; memories: Record<string, Memory[]> };
+        setCachedMemories(data.memories);
         const cityAllMemories = data.memories[city.id] ?? [];
         const updatedList = cityAllMemories.filter((m) => m.spotId === spotId || m.id === targetMemory.id);
         setMemories((prev) => ({ ...prev, [spotId]: updatedList }));
@@ -462,6 +461,7 @@ export default function CityDetailPage({ city }: CityDetailPageProps) {
       });
       if (res.ok) {
         const data = (await res.json()) as { memory: Memory; memories: Record<string, Memory[]> };
+        setCachedMemories(data.memories);
         const cityAllMemories = data.memories[city.id] ?? [];
         const updatedList = cityAllMemories.filter((m) => m.spotId === spotId);
         setMemories((prev) => ({ ...prev, [spotId]: updatedList }));

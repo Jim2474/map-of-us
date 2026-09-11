@@ -15,9 +15,9 @@ import {
 import {
   getLitCityIds,
   getLitProvinceIds,
-  memoryStoreUpdatedEvent,
   type LocalMemoryStore,
 } from "@/data/progress";
+import { useLocalMemories } from "@/data/memoryClient";
 import { provinces } from "@/data/provinces";
 
 interface ChinaMapProps {
@@ -102,40 +102,13 @@ export function SouthChinaSeaInset() {
 
 export default function ChinaMap({ width = 1100, height = 860, className }: ChinaMapProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [localMemories, setLocalMemories] = useState<LocalMemoryStore>({});
+  const { localMemories } = useLocalMemories();
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState<Pan>({ x: 0, y: 0 });
   const dragStateRef = useRef<DragState | null>(null);
   const dragMovedRef = useRef(false);
   const suppressClickRef = useRef(false);
   const router = useRouter();
-
-  useEffect(() => {
-    let cancelled = false;
-    const handleMemoryUpdate = (event: Event) => {
-      const detail = (event as CustomEvent<LocalMemoryStore>).detail;
-      if (detail) setLocalMemories(detail);
-    };
-
-    async function loadLocalMemories() {
-      const response = await fetch("/api/memories", { cache: "no-store" }).catch(() => null);
-      if (!response?.ok) return;
-
-      const data = (await response.json().catch(() => null)) as
-        | { memories?: LocalMemoryStore }
-        | null;
-
-      if (!cancelled && data?.memories) setLocalMemories(data.memories);
-    }
-
-    window.addEventListener(memoryStoreUpdatedEvent, handleMemoryUpdate);
-    loadLocalMemories();
-
-    return () => {
-      cancelled = true;
-      window.removeEventListener(memoryStoreUpdatedEvent, handleMemoryUpdate);
-    };
-  }, []);
 
   const litProvinceIds = useMemo(
     () => getLitProvinceIds(getLitCityIds(localMemories)),
