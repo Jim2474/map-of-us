@@ -28,6 +28,7 @@ function fetchWithTimeout(url: RequestInfo | URL, init?: RequestInit, timeoutMs 
 }
 
 export function getSupabaseAdmin() {
+  if (!isSupabaseConfigured) return null;
   if (!supabaseUrl || !supabaseServiceRoleKey) return null;
 
   return createClient(supabaseUrl, supabaseServiceRoleKey, {
@@ -104,20 +105,27 @@ export async function uploadDataImage(
   const extension = extensionByMime.get(mimeType) ?? "jpg";
   const bytes = Buffer.from(base64, "base64");
 
-  const supabase = getSupabaseAdmin();
-  if (supabase) {
-    const filePath = `${pathPrefix}/${fallbackFileName}.${extension}`.replaceAll(/\/+/g, "/");
-    const { error } = await supabase.storage
-      .from(supabaseStorageBucket)
-      .upload(filePath, bytes, {
-        contentType: mimeType,
-        upsert: true,
-      });
+  if (isSupabaseConfigured) {
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      try {
+        const filePath = `${pathPrefix}/${fallbackFileName}.${extension}`.replaceAll(/\/+/g, "/");
+        const { error } = await supabase.storage
+          .from(supabaseStorageBucket)
+          .upload(filePath, bytes, {
+            contentType: mimeType,
+            upsert: true,
+          });
 
-    if (error) throw error;
-
-    const { data } = supabase.storage.from(supabaseStorageBucket).getPublicUrl(filePath);
-    return data.publicUrl;
+        if (!error) {
+          const { data } = supabase.storage.from(supabaseStorageBucket).getPublicUrl(filePath);
+          return data.publicUrl;
+        }
+        console.warn("[supabase] storage upload failed, falling back to local disk:", error.message);
+      } catch (e) {
+        console.warn("[supabase] storage upload error, falling back to local disk:", (e as Error).message);
+      }
+    }
   }
 
   // Self-hosted local storage mode

@@ -26,6 +26,7 @@ const dataFiles = [
   "localSpots.json",
   "cityAssets.private.json",
   "loginPhotos.private.json",
+  "deletedRecords.private.json",
 ];
 for (const fileName of dataFiles) {
   await copyIfPresent(path.join(root, "data", fileName), path.join(standaloneDir, "data", fileName));

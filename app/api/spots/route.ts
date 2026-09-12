@@ -5,6 +5,7 @@ import type { Spot, SpotStore } from "@/data/spots";
 import { defaultSpotsByCity } from "@/data/spots";
 import { requireAdminSession, requireSiteSession } from "@/lib/server/auth";
 import { getPrivateDataFilePath } from "@/lib/server/dataDir";
+import { addToTrash } from "@/lib/server/trash";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -164,12 +165,25 @@ export async function DELETE(request: NextRequest) {
 
   const store = await readSpotStore();
   const citySpots = store[cityId] ?? [];
-  const filtered = citySpots.filter((s) => s.id !== spotId);
+  const targetSpot = citySpots.find((s) => s.id === spotId);
 
-  if (filtered.length === citySpots.length) {
+  if (!targetSpot) {
     return NextResponse.json({ error: "Spot not found" }, { status: 404 });
   }
 
+  try {
+    await addToTrash({
+      id: targetSpot.id,
+      type: "spot",
+      cityId,
+      cityName: targetSpot.name,
+      data: targetSpot,
+    });
+  } catch (err) {
+    console.error("Failed to add spot to trash:", err);
+  }
+
+  const filtered = citySpots.filter((s) => s.id !== spotId);
   const nextStore = { ...store, [cityId]: filtered };
   if (filtered.length === 0) delete nextStore[cityId];
 

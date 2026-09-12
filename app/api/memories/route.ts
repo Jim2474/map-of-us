@@ -14,6 +14,7 @@ import {
 import { isLocalPrivacyRequest, localPrivacyImagePlaceholder } from "@/lib/localPrivacy";
 import { requireAdminSession, requireSiteSession } from "@/lib/server/auth";
 import { getBundledDataFilePath, getPrivateDataFilePath } from "@/lib/server/dataDir";
+import { addToTrash } from "@/lib/server/trash";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -480,6 +481,19 @@ export async function DELETE(request: NextRequest) {
 
   if (memoryIndex === -1) {
     return NextResponse.json({ error: "Memory not found" }, { status: 404 });
+  }
+
+  const deletedMemory = cityMemories[memoryIndex];
+  try {
+    await addToTrash({
+      id: deletedMemory.id,
+      type: "memory",
+      cityId: payload.cityId,
+      cityName: deletedMemory.city,
+      data: deletedMemory,
+    });
+  } catch (err) {
+    console.error("Failed to add memory to trash:", err);
   }
 
   const nextCityMemories = cityMemories.filter((memory) => memory.id !== payload.memoryId);

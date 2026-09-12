@@ -13,6 +13,7 @@ import {
   ShieldOff,
   Trash2,
   Upload,
+  RotateCcw,
 } from "lucide-react";
 import { cities } from "@/data/cities";
 import { MemoryPageShell, type MemoryNavKey } from "@/components/MemoryNav";
@@ -546,6 +547,78 @@ export function SettingsPage() {
       window.removeEventListener(loginPhotosUpdatedEvent, handleLoginPhotosUpdate);
     };
   }, []);
+
+  const [trashRecords, setTrashRecords] = useState<any[]>([]);
+  const [loadingTrash, setLoadingTrash] = useState(false);
+
+  const loadTrashRecords = async () => {
+    setLoadingTrash(true);
+    try {
+      const res = await fetch("/api/trash", { cache: "no-store" }).catch(() => null);
+      if (res?.ok) {
+        const data = await res.json().catch(() => null);
+        setTrashRecords(data?.records ?? []);
+      }
+    } finally {
+      setLoadingTrash(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadTrashRecords();
+  }, [isAdmin]);
+
+  const handleRestoreRecord = async (id: string, type: "memory" | "spot") => {
+    if (!isAdmin) {
+      setStatus("请先进入管理员模式");
+      return;
+    }
+    setIsWorking(true);
+    setStatus("");
+    try {
+      const res = await fetch("/api/trash", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, type }),
+      });
+      if (!res.ok) throw new Error("恢复失败");
+      const data = await res.json();
+      setStatus(`已成功恢复「${data.restored?.cityName || data.restored?.cityId || "记录"}」！可在地图与相册中查看。`);
+      await loadTrashRecords();
+      await loadMemoryCount();
+      if (data.memories) {
+        window.dispatchEvent(new CustomEvent(memoryStoreUpdatedEvent, { detail: data.memories }));
+      }
+    } catch {
+      setStatus("恢复记录失败，请重试");
+    } finally {
+      setIsWorking(false);
+    }
+  };
+
+  const handleClearTrash = async () => {
+    if (!isAdmin) {
+      setStatus("请先进入管理员模式");
+      return;
+    }
+    if (!window.confirm("确定要永久清空回收站吗？此操作无法撤销。")) return;
+    setIsWorking(true);
+    try {
+      const res = await fetch("/api/trash", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (res.ok) {
+        setTrashRecords([]);
+        setStatus("回收站已清空");
+      }
+    } catch {
+      setStatus("清空回收站失败");
+    } finally {
+      setIsWorking(false);
+    }
+  };
 
   const updateLoginPhoto = async (slotId: string, event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -1201,6 +1274,104 @@ export function SettingsPage() {
             <Upload className="h-4 w-4" />
             导入备份
           </button>
+        </div>
+        <div className="rounded-[8px] border border-[#D8DDD8]/78 bg-[#FAFBF7]/76 p-5 shadow-[0_12px_28px_rgba(90,102,112,0.06)] md:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="flex items-center gap-2 text-sm font-semibold text-[#5A6670]">
+                <span>🗑️ 回收站 / 最近删除</span>
+                <span className="rounded-full bg-[#E8B8C2]/20 px-2 py-0.5 text-xs font-medium text-[#9A6070]">
+                  {trashRecords.length} 项
+                </span>
+              </p>
+              <p className="mt-1 text-xs text-[#5A6670]/62">
+                已删除的地点或回忆会被安全暂存。管理员可随时在此点击「一键恢复」重新找回数据。
+              </p>
+            </div>
+            {isAdmin && trashRecords.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClearTrash}
+                disabled={isWorking}
+                className="flex items-center gap-1 rounded-[6px] border border-[#c0392b]/30 px-2.5 py-1.5 text-xs text-[#c0392b]/80 transition hover:border-[#c0392b]/60 hover:text-[#c0392b]"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                清空回收站
+              </button>
+            )}
+          </div>
+
+          {loadingTrash ? (
+            <div className="py-8 text-center text-xs text-[#5A6670]/50">正在加载回收站...</div>
+          ) : trashRecords.length === 0 ? (
+            <div className="py-8 text-center text-xs text-[#5A6670]/40">
+              回收站空空如也，暂无已删除的记录
+            </div>
+          ) : (
+            <div className="mt-4 max-h-80 divide-y divide-[#D8DDD8]/40 overflow-y-auto border-t border-[#D8DDD8]/50 pr-1">
+              {trashRecords.map((item) => {
+                const isMemory = item.type === "memory";
+                const title = isMemory
+                  ? `${item.cityName || item.cityId}回忆 · ${item.data?.date || ""}`
+                  : `地点 · ${item.data?.name || item.cityName || item.cityId}`;
+                const detail = isMemory ? item.data?.text : item.data?.description;
+                const photo = isMemory ? (item.data?.photos?.[0] || item.data?.image) : null;
+                const dateStr = item.deletedAt
+                  ? new Date(item.deletedAt).toLocaleString("zh-CN", {
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : "";
+
+                return (
+                  <div key={item.id} className="flex items-center justify-between gap-3 py-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      {photo ? (
+                        <div className="h-11 w-11 shrink-0 overflow-hidden rounded-[6px] border border-[#D8DDD8]/70 bg-white">
+                          <LocalPrivacyImage
+                            src={photo}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-[6px] border border-[#D8DDD8]/70 bg-[#FAFBF7] text-lg">
+                          {isMemory ? "📷" : (item.data?.emoji || "📍")}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate text-xs font-semibold text-[#5A6670]">
+                            {title}
+                          </span>
+                          <span className="shrink-0 text-[10px] text-[#5A6670]/45">
+                            删除于 {dateStr}
+                          </span>
+                        </div>
+                        {detail && (
+                          <p className="mt-0.5 max-w-md truncate text-xs text-[#5A6670]/60">
+                            {detail}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={isWorking || !isAdmin}
+                      onClick={() => handleRestoreRecord(item.id, item.type)}
+                      className="flex shrink-0 items-center gap-1.5 rounded-[6px] border border-[#A8C8DC] bg-[#FAFBF7] px-3 py-1.5 text-xs font-medium text-[#4b7a97] transition hover:bg-[#D6E8F0]/40 disabled:opacity-40"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      一键恢复
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
       {status && (

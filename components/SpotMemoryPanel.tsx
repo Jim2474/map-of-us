@@ -183,6 +183,9 @@ export default function SpotMemoryPanel({
 
   const handleDelete = async () => {
     if (!currentMemory) return;
+    if (!window.confirm("确定要删除此段回忆吗？（删除后可在「设置 -> 回收站」中随时恢复）")) {
+      return;
+    }
     setDeleting(true);
 
     try {
@@ -249,7 +252,7 @@ export default function SpotMemoryPanel({
           {isAdmin && onDeleteSpot && (
             <button
               onClick={() => {
-                if (window.confirm(`确定要删除地点「${spot.name}」及其所有回忆吗？`)) {
+                if (window.confirm(`确定要删除地点「${spot.name}」及其所有回忆吗？（删除后可在「设置 -> 回收站」中随时恢复）`)) {
                   onDeleteSpot();
                 }
               }}
