@@ -469,7 +469,8 @@
         "/uploads/memories/nanning/nanning-1786543195520/photo-1.jpg"
       ],
       "text": "11号下午六点，我下班的时候你也刚好上车啦。那天回来发现桌上的字条和奶茶，让我更舍不得你了，臭李俊明，我也好爱你。你又把我弄哭了。。",
-      "createdAt": "2026-08-12T13:59:55.520Z"
+      "createdAt": "2026-08-12T13:59:55.520Z",
+      "spotId": "spot-nanning-dongzhan"
     },
     {
       "id": "nanning-1786542917489",
@@ -482,7 +483,8 @@
         "/uploads/memories/nanning/nanning-1786542917489/photo-1.jpg"
       ],
       "text": "这是我们在南宁吃的最后一顿豪华大餐，蛙蛙。有点不好的是，这个味道在我房间里留了一天。。。",
-      "createdAt": "2026-08-12T13:55:17.489Z"
+      "createdAt": "2026-08-12T13:55:17.489Z",
+      "spotId": "spot-nanning-wawa"
     },
     {
       "id": "nanning-1786542811848",
@@ -495,7 +497,8 @@
         "/uploads/memories/nanning/nanning-1786542811848/photo-1.jpg"
       ],
       "text": "和你在一起之后，每次抢课都是你在帮我操盘，虽然说我自己也可以，可还是忍不住想要去依赖你",
-      "createdAt": "2026-08-12T13:53:31.848Z"
+      "createdAt": "2026-08-12T13:53:31.848Z",
+      "spotId": "spot-nanning-daily"
     },
     {
       "id": "nanning-1786542702629",
@@ -508,7 +511,8 @@
         "/uploads/memories/nanning/nanning-1786542702629/photo-1.jpg"
       ],
       "text": "和你在一起的每一天都很幸福捏，好喜欢这种感觉，照片这一刻我们永远都不会分开的感觉..",
-      "createdAt": "2026-08-12T13:51:42.629Z"
+      "createdAt": "2026-08-12T13:51:42.629Z",
+      "spotId": "spot-nanning-daily"
     },
     {
       "id": "nanning-1786542567535",
@@ -521,7 +525,8 @@
         "/uploads/memories/nanning/nanning-1786542567535/photo-1.jpg"
       ],
       "text": "我们一起去了山姆航洋还有仙葫夜市，凑成了这几天最丰盛的一餐之一嘻嘻...大宝为了开这瓶酒跑了好几趟，有你在我真的啥都不想动果..谢谢你宝贝",
-      "createdAt": "2026-08-12T13:49:27.535Z"
+      "createdAt": "2026-08-12T13:49:27.535Z",
+      "spotId": "spot-nanning-sam"
     },
     {
       "id": "nanning-1786542347287",
@@ -535,7 +540,8 @@
         "/uploads/memories/nanning/nanning-1786542347287/photo-2.jpg"
       ],
       "text": "一起去住的大季季，",
-      "createdAt": "2026-08-12T13:45:47.287Z"
+      "createdAt": "2026-08-12T13:45:47.287Z",
+      "spotId": "spot-nanning-quanji"
     },
     {
       "id": "nanning-1786542057346",
@@ -548,7 +554,8 @@
         "/uploads/memories/nanning/nanning-1786542057346/photo-1.jpg"
       ],
       "text": "这是我们一起靠在对方身边玩手机的自拍。我喜欢这种时刻，靠在你怀里很安心..",
-      "createdAt": "2026-08-12T13:40:57.346Z"
+      "createdAt": "2026-08-12T13:40:57.346Z",
+      "spotId": "spot-nanning-daily"
     },
     {
       "id": "nanning-1786541729049",
@@ -561,7 +568,8 @@
         "/uploads/memories/nanning/nanning-1786541729049/photo-1.jpg"
       ],
       "text": "这是我生日的前一天，俊明趁我去上班给我点了好漂亮的花花嘻嘻；还偷偷架了个机位记录这一瞬间，也是这天我才知道他为这个软件准备了好久，有你真好宝宝",
-      "createdAt": "2026-08-12T13:35:29.049Z"
+      "createdAt": "2026-08-12T13:35:29.049Z",
+      "spotId": "spot-nanning-birthday"
     },
     {
       "id": "nanning-1786541341609",
@@ -574,7 +582,8 @@
         "/uploads/memories/nanning/nanning-1786541341609/photo-1.jpg"
       ],
       "text": "提前来到南宁陪我的大宝，偷偷给我准备了好多礼物",
-      "createdAt": "2026-08-12T13:29:01.609Z"
+      "createdAt": "2026-08-12T13:29:01.609Z",
+      "spotId": "spot-nanning-gifts"
     }
   ]
 }

@@ -646,7 +646,7 @@ export default function UnifiedCityExplore() {
           </div>
 
           {/* Leaflet 地图容器 */}
-          <div className="relative flex-1 min-h-[500px] w-full">
+          <div className="relative flex-1 min-h-[500px] w-full overflow-hidden">
             <MapContainer
               center={[currentCity.lat, currentCity.lng]}
               zoom={13}
@@ -705,25 +705,18 @@ export default function UnifiedCityExplore() {
               )}
             </AnimatePresence>
 
-            {/* 选中地点右侧回忆抽屉面板 */}
+            {/* 选中地点回忆浮窗卡片 */}
             <AnimatePresence>
               {selectedSpot && (
-                <motion.div
-                  initial={{ x: 380, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: 380, opacity: 0 }}
-                  transition={{ type: "spring", damping: 26, stiffness: 220 }}
-                  className="absolute right-0 top-0 bottom-0 z-[1000] w-full max-w-md border-l border-[#D8DDD8] bg-[#FAFBF7]/95 shadow-2xl backdrop-blur-md overflow-y-auto"
-                >
-                  <SpotMemoryPanel
-                    spot={selectedSpot}
-                    memories={memories[selectedSpot.id] ?? []}
-                    isAdmin={isAdmin}
-                    onClose={() => setSelectedSpotId(null)}
-                    onMemoriesChanged={(updated) => handleSpotMemoriesChanged(selectedSpot.id, updated)}
-                    onDeleteSpot={() => handleDeleteSpot(selectedSpot)}
-                  />
-                </motion.div>
+                <SpotMemoryPanel
+                  key={selectedSpot.id}
+                  spot={selectedSpot}
+                  memories={memories[selectedSpot.id] ?? []}
+                  isAdmin={isAdmin}
+                  onClose={() => setSelectedSpotId(null)}
+                  onMemoriesChanged={(updated) => handleSpotMemoriesChanged(selectedSpot.id, updated)}
+                  onDeleteSpot={() => handleDeleteSpot(selectedSpot)}
+                />
               )}
             </AnimatePresence>
 

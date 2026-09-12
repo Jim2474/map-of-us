@@ -194,9 +194,77 @@ export const yulinDefaultSpots: Spot[] = [
   },
 ];
 
+// ── 南宁默认预置地点 ───────────────────────────────────────
+export const nanningDefaultSpots: Spot[] = [
+  {
+    id: "spot-nanning-sam",
+    cityId: "nanning",
+    name: "山姆会员商店(航洋城)",
+    description: "一起去逛山姆买烤鸡和零食，大宝为开酒跑好几趟的丰盛大餐",
+    lat: 22.8122,
+    lng: 108.3892,
+    emoji: "🛒",
+  },
+  {
+    id: "spot-nanning-quanji",
+    cityId: "nanning",
+    name: "全季酒店(大季季)",
+    description: "一起去住的大季季，温馨难忘的夏日留宿",
+    lat: 22.8152,
+    lng: 108.3798,
+    emoji: "🏨",
+  },
+  {
+    id: "spot-nanning-wawa",
+    cityId: "nanning",
+    name: "万象城/蛙小侠大餐",
+    description: "在南宁吃的最后一顿豪华大餐蛙蛙，热气腾腾的美味",
+    lat: 22.8105,
+    lng: 108.3980,
+    emoji: "🐸",
+  },
+  {
+    id: "spot-nanning-dongzhan",
+    cityId: "nanning",
+    name: "南宁东站",
+    description: "下班送别与依依不舍，桌上留下的字条和奶茶",
+    lat: 22.8458,
+    lng: 108.4116,
+    emoji: "🚄",
+  },
+  {
+    id: "spot-nanning-birthday",
+    cityId: "nanning",
+    name: "青秀住处/生日惊喜花花",
+    description: "生日提前一天的惊喜花花，偷架机位记录与软件秘密",
+    lat: 22.8180,
+    lng: 108.3650,
+    emoji: "💐",
+  },
+  {
+    id: "spot-nanning-gifts",
+    cityId: "nanning",
+    name: "青秀住处/满屋礼物与相聚",
+    description: "提前来到南宁相伴的大宝，偷偷准备的满屋礼物",
+    lat: 22.8186,
+    lng: 108.3642,
+    emoji: "🎁",
+  },
+  {
+    id: "spot-nanning-daily",
+    cityId: "nanning",
+    name: "温馨居所/抢课与依偎日常",
+    description: "靠在身边玩手机、操盘抢课顺利，永远不会分开的甜蜜日常",
+    lat: 22.8175,
+    lng: 108.3658,
+    emoji: "💕",
+  },
+];
+
 // ── 所有城市默认地点映射 ───────────────────────────────────
 export const defaultSpotsByCity: Record<string, Spot[]> = {
   guilin: guilinDefaultSpots,
+  nanning: nanningDefaultSpots,
   "city-450200": liuzhouDefaultSpots,
   "city-450900": yulinDefaultSpots,
 };

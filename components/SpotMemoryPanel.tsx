@@ -216,21 +216,13 @@ export default function SpotMemoryPanel({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.96 }}
+      initial={{ opacity: 0, y: 24, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 20, scale: 0.96 }}
+      exit={{ opacity: 0, y: 24, scale: 0.96 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="absolute bottom-4 sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 sm:w-[410px] max-w-[420px] z-[1000] rounded-2xl border border-[#D8DDD8]/80 shadow-[0_12px_44px_rgba(0,0,0,0.18)] overflow-hidden"
       style={{
-        position: "absolute",
-        bottom: 24,
-        left: "50%",
-        transform: "translateX(-50%)",
-        width: "min(420px, calc(100vw - 32px))",
         background: colors.cream,
-        borderRadius: 20,
-        boxShadow: "0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)",
-        zIndex: 1000,
-        overflow: "hidden",
         fontFamily: "system-ui, -apple-system, sans-serif",
       }}
     >
