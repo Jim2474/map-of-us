@@ -1,4 +1,6 @@
 import Image from "next/image";
+import Link from "next/link";
+import { Compass } from "lucide-react";
 import ChinaMap, { SouthChinaSeaInset } from "@/components/ChinaMap";
 import BackToLoginButton from "@/components/BackToLoginButton";
 import { LegendProgress, ProgressBadge, StatsPanel } from "@/components/HomeProgress";
@@ -100,8 +102,24 @@ export default function MapPage() {
                 <p className="mt-0.5 sm:mt-1 text-sm sm:text-base font-medium text-[#5A6670]/62">我们的地图</p>
               </div>
               <ProgressBadge />
+              <Link
+                href="/city-explore"
+                className="ml-3 hidden sm:inline-flex items-center gap-2 rounded-full border border-[#E8B8C2] bg-[#FAFBF7]/85 px-4 py-2 text-sm font-semibold text-[#5A6670] shadow-[0_6px_20px_rgba(232,184,194,0.22)] backdrop-blur transition hover:scale-105 hover:border-[#C97B8A] hover:bg-[#F5DCE0]/40 active:scale-95"
+              >
+                <Compass className="h-4 w-4 text-[#C97B8A]" />
+                <span>城市探索</span>
+              </Link>
             </div>
-            <BackToLoginButton />
+            <div className="flex items-center gap-2.5">
+              <Link
+                href="/city-explore"
+                className="sm:hidden inline-flex items-center gap-1.5 rounded-full border border-[#E8B8C2] bg-[#FAFBF7]/85 px-3 py-1.5 text-xs font-semibold text-[#5A6670] shadow-sm backdrop-blur active:scale-95"
+              >
+                <Compass className="h-3.5 w-3.5 text-[#C97B8A]" />
+                <span>探索</span>
+              </Link>
+              <BackToLoginButton />
+            </div>
           </header>
 
           <div className="flex min-h-0 flex-1 items-center justify-center pb-24 pt-0 sm:pb-20 lg:pb-6">

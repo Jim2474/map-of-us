@@ -13,6 +13,7 @@ interface SpotMemoryPanelProps {
   isAdmin: boolean;
   onClose: () => void;
   onMemoriesChanged: (memories: Memory[]) => void;
+  onDeleteSpot?: () => void;
 }
 
 const colors = {
@@ -60,6 +61,7 @@ export default function SpotMemoryPanel({
   isAdmin,
   onClose,
   onMemoriesChanged,
+  onDeleteSpot,
 }: SpotMemoryPanelProps) {
   const [tab, setTab] = useState<"view" | "add">(memories.length === 0 && isAdmin ? "add" : "view");
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -251,23 +253,49 @@ export default function SpotMemoryPanel({
             )}
           </div>
         </div>
-        <button
-          onClick={onClose}
-          style={{
-            background: "rgba(255,255,255,0.4)",
-            border: "none",
-            borderRadius: "50%",
-            width: 30,
-            height: 30,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            color: "#5A3340",
-          }}
-        >
-          <X size={16} />
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {isAdmin && onDeleteSpot && (
+            <button
+              onClick={() => {
+                if (window.confirm(`确定要删除地点「${spot.name}」及其所有回忆吗？`)) {
+                  onDeleteSpot();
+                }
+              }}
+              title="删除此地点"
+              style={{
+                background: "rgba(255,255,255,0.4)",
+                border: "none",
+                borderRadius: "50%",
+                width: 30,
+                height: 30,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                color: "#c0392b",
+              }}
+            >
+              <Trash2 size={15} />
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            style={{
+              background: "rgba(255,255,255,0.4)",
+              border: "none",
+              borderRadius: "50%",
+              width: 30,
+              height: 30,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#5A3340",
+            }}
+          >
+            <X size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Tab bar */}

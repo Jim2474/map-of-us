@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   BookOpen,
   CalendarDays,
+  Compass,
   Heart,
   Map as MapIcon,
   Settings,
@@ -24,7 +25,14 @@ const navTabs: NavTab[] = [
     label: "地图",
     icon: MapIcon,
     href: "/map",
-    match: (path) => path === "/map" || path.startsWith("/province") || path.startsWith("/city"),
+    match: (path) => path === "/map" || path.startsWith("/province"),
+  },
+  {
+    key: "explore",
+    label: "探索",
+    icon: Compass,
+    href: "/city-explore",
+    match: (path) => path.startsWith("/city-explore") || path.startsWith("/city/"),
   },
   {
     key: "memories",

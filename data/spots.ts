@@ -201,11 +201,13 @@ export const defaultSpotsByCity: Record<string, Spot[]> = {
   "city-450900": yulinDefaultSpots,
 };
 
-// 支持「城市详情地图」的城市列表
+// 支持「城市详情地图」的推荐/默认城市列表
 export const cityDetailEnabled = new Set<string>([
   "guilin",
+  "nanning",
   "city-450200", // 柳州
   "city-450900", // 玉林
 ]);
 
-export const hasCityDetail = (cityId: string) => cityDetailEnabled.has(cityId);
+export const hasCityDetail = (cityId: string) => Boolean(cityId);
+

@@ -2001,7 +2001,7 @@ function CityExploreButton({ cityId, cityName }: { cityId: string; cityName: str
     <motion.button
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      onClick={() => router.push(`/city/${cityId}`)}
+      onClick={() => router.push(`/city-explore?city=${cityId}`)}
       className="mt-3 flex w-full items-center justify-center gap-2 rounded-[10px] border border-[#E8B8C2] bg-gradient-to-r from-[#F5DCE0] to-[#F0D0DC] px-4 py-2.5 text-sm font-semibold text-[#C97B8A] shadow-[0_2px_12px_rgba(232,184,194,0.25)] transition hover:shadow-[0_4px_16px_rgba(232,184,194,0.4)] hover:from-[#EEC8D0] hover:to-[#E8B8C2] hover:text-[#9A3D52]"
       type="button"
       aria-label={`进入${cityName}精细地图`}

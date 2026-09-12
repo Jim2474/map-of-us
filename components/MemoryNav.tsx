@@ -6,16 +6,18 @@ import {
   Archive,
   BookOpen,
   CalendarDays,
+  Compass,
   Heart,
   Map as MapIcon,
   Settings,
 } from "lucide-react";
 import MobileBottomNav from "@/components/MobileBottomNav";
 
-export type MemoryNavKey = "map" | "memories" | "favorites" | "anniversaries" | "capsule" | "settings";
+export type MemoryNavKey = "map" | "city-explore" | "memories" | "favorites" | "anniversaries" | "capsule" | "settings";
 
 const navItems = [
   { key: "map", label: "地图", icon: MapIcon, href: "/map" },
+  { key: "city-explore", label: "城市探索", icon: Compass, href: "/city-explore" },
   { key: "memories", label: "回忆记录", icon: BookOpen, href: "/memories" },
   { key: "favorites", label: "地点收藏", icon: Heart, href: "/favorites" },
   { key: "anniversaries", label: "纪念日", icon: CalendarDays, href: "/anniversaries" },
